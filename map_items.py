@@ -369,7 +369,8 @@ class PlayerParty(Band):
         """
         dist_x = target.x - self.x
         dist_y = target.y - self.y
-        turns = math.ceil((dist_x + dist_y) / self.movement)
+        total_dist = math.sqrt(dist_x ** 2 + dist_y ** 2)
+        turns = math.ceil(total_dist / self.movement)
         return turns
 
 

@@ -37,7 +37,6 @@ def global_turn(player, day):
     """
     print(f'\n========================== Day {day} '
           '==========================')
-    select_options(player)
     for item in map_items.map_items:
         if item.mobile:
             item.wander()
@@ -45,6 +44,7 @@ def global_turn(player, day):
             item.generate_items()
             item.generate_recruitables()
             item.wealth = int(item.wealth * ((random.random() / 10) + 0.95))
+    select_options(player)
     day += 1
     return day
 
@@ -59,7 +59,7 @@ def select_options(player):
     while True:
         # Print possible actions
         actions = get_actions(player, can_move)
-        if len(actions) == 1 and actions [0] == 'Rest':
+        if len(actions) == 1 and actions[0] == 'Rest':
             break
         print('-----------------\nPlayer Actions\n'
               '-----------------')
@@ -80,9 +80,9 @@ def select_options(player):
             player.move_to(player.target_move)
             can_move = False
         elif your_choice == 'Fight Enemy':
-            enemy = next(item.x == 0 and item.y == 0 and
-                         item.mobile and item.hostile
-                         for item in map_items.map_items)
+            enemy = next(item for item in map_items.map_items
+                         if item.x == 0 and item.y == 0 and
+                         item.mobile and item.hostile)
             create_encounter(player, enemy)
             break
         elif your_choice == 'New Movement':
@@ -126,19 +126,19 @@ def new_move(player):
         str: Back or not
     """
     print('-----------------\nNearby Locations\n-----------------')
-    for loc in map_items.map_items:
+    for i, loc in enumerate(map_items.map_items):
         if loc.calculate_dir()[0] < 50:
+            print(i, end='. ')
             map_items.print_map_item(loc)
     your_choice = 'None'
-    while not any(your_choice == lc.name for lc in map_items.map_items):
-        your_choice = input('Where do you want to go? ')
+    while not any(your_choice == i for i in range(len(map_items.map_items))):
+        your_choice = int(input('Where do you want to go? (#) '))
         if your_choice == 'Back':
             return 'Back'
-        if not any(your_choice == lc.name for lc in map_items.map_items):
+        if not any(your_choice == i for i in range(len(map_items.map_items))):
             print('Invalid selection, try again')
         else:
-            select = next(item for item in map_items.map_items
-                          if your_choice == item.name)
+            select = map_items.map_items[your_choice]
     player.move_to(select)
     return 'Not'
 
@@ -186,7 +186,7 @@ def create_encounter(team1, team2):
     print('-----------------\nTeam 1\n-----------------')
     for char in team1.members:
         print(f'{char.name}: {int(char.cur_hp)}/{char.max_hp} hp')
-    print('\n-----------------\nTeam 2\n-----------------')
+    print('-----------------\nTeam 2\n-----------------')
     for char in team2.members:
         print(f'{char.name}: {int(char.cur_hp)}/{char.max_hp} hp')
     # The battle begins

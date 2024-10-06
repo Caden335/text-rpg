@@ -209,7 +209,7 @@ class Entity:
         damage *= ((random.randint(3, 7) / 10) + 0.5)
         # Truncates to 1 decimal just in case math adds unecessary digits
         damage = float(f'{damage:.1f}')
-        if random.random <= hit_chance:
+        if random.random() <= hit_chance:
             print(f'{self.name} hit their attack against '
                   f'{enemy.name} for {damage} points')
             enemy.take_damage(damage)
