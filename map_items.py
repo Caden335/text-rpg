@@ -7,6 +7,7 @@ Version: 10/4/2024
 import random
 import entities
 import math
+import items
 
 
 map_items = []
@@ -153,8 +154,20 @@ class Settlement(MapItem):
     def generate_items(self):
         """Generate items for shop."""
         for _x in range(len(self.shop), 10):
-            item = True
-        print('ADD AFTER ITEM CLASSES')
+            rar = random.random()
+            if rar < 0.75:
+                rand = random.randint(0, len(items.common_items) - 1)
+                item = items.common_items[rand]
+            elif rar < 0.9:
+                rand = random.randint(0, len(items.well_made_items) - 1)
+                item = items.well_made_items[rand]
+            elif rar < 0.97:
+                rand = random.randint(0, len(items.expert_items) - 1)
+                item = items.expert_items[rand]
+            else:
+                rand = random.randint(0, len(items.masterwork_items) - 1)
+                item = items.masterwork_items[rand]
+            self.shop.append(item)
 
     def generate_recruitables(self):
         """Generate items for shop."""

@@ -9,18 +9,6 @@ import entities
 import map_items
 
 
-all_items = []
-
-
-def print_map_item_list():
-    """Print all map items."""
-    for item in all_items:
-        text = item.name
-        text += f' ({item.type}) ({item.rarity}):'
-        text += f'{item.effects}: {item.cost}'
-        print(text)
-
-
 class Item:
     """Stores a unique item.
 
@@ -115,3 +103,94 @@ class Item:
         self.equipt.hp -= self.effects[3]
         print(f'Unequipt {self.name} from {self.equipt.name}')
         self.equipt = None
+
+
+all_items = (Item('Ring of Health', 'accessory', 'common', (0, 0, 0, 1)),
+             Item('Ring of Armor', 'accessory', 'common', (0, 1, 0, 0)),
+             Item('Ring of Speed', 'accessory', 'common', (0, 0, 1, 0)),
+             Item('Ring of Damage', 'accessory', 'common', (1, 0, 0, 0)),
+             Item('Emerald Ring', 'accessory', 'well-made', (0, 1, 0, 1)),
+             Item('Ruby Ring', 'accessory', 'well-made', (2, 0, 0, 0)),
+             Item('Amethyst Ring', 'accessory', 'well-made', (0, 0, 2, 0)),
+             Item('Jade Ring', 'accessory', 'well-made', (0, 0, 0, 2)),
+             Item('Sapphire Ring', 'accessory', 'well-made', (0, 2, 0, 0)),
+             Item('Ring of Protection', 'accessory', 'expert', (0, 2, 1, 0)),
+             Item('Diamong Ring', 'accessory', 'expert', (3, 0, 0, 0)),
+             Item('All-Ring', 'accessory', 'masterwork', (1, 1, 1, 1)),
+             Item('Buckler', 'weapon', 'common', (0, 1, 0, 0)),  # Shields
+             Item('Heater Shield', 'weapon', 'well-made', (0, 2, 0, 0)),
+             Item('Kite Shield', 'weapon', 'expert', (0, 3, 0, 0)),
+             Item('Tower Shield', 'weapon', 'masterwork', (0, 4, 0, 0)),
+             Item('Spear', 'weapon', 'common', (1, 0, 0, 0)),  # Spears
+             Item('Steel Spear', 'weapon', 'well-made', (2, 0, 0, 0)),
+             Item('Spear and Buckler', 'weapon', 'well-made', (1, 1, 0, 0)),
+             Item('Ornate Spear', 'weapon', 'expert', (3, 0, 0, 0)),
+             Item('Spear and Shield', 'weapon', 'expert', (2, 1, 0, 0)),
+             Item('Gungnir', 'weapon', 'masterwork', (4, 0, 0, 0)),
+             Item('Sword', 'weapon', 'common', (1, 0, 0, 0)),  # Swords
+             Item('Greatsword', 'weapon', 'well-made', (2, 0, 0, 0)),
+             Item('Sword and Shield', 'weapon', 'well-made', (1, 1, 0, 0)),
+             Item('Zweihander', 'weapon', 'expert', (3, 0, 0, 0)),
+             Item('Sword and Shield', 'weapon', 'expert', (2, 1, 0, 0)),
+             Item('Gram', 'weapon', 'masterwork', (4, 0, 0, 0)),
+             Item('Kopis and Aegis', 'weapon', 'masterwork', (2, 2, 0, 0)),
+             Item('Axe', 'weapon', 'common', (1, 0, 0, 0)),  # Axes
+             Item('Greataxe', 'weapon', 'well-made', (2, 0, 0, 0)),
+             Item('Khopesh and Shield', 'weapon', 'well-made', (1, 1, 0, 0)),
+             Item('Battleaxe', 'weapon', 'expert', (3, 0, 0, 0)),
+             Item('Axe and Shield', 'weapon', 'expert', (2, 1, 0, 0)),
+             Item('Labrys', 'weapon', 'masterwork', (4, 0, 0, 0)),
+             Item('Axe and Roundshield', 'weapon', 'masterwork', (2, 2, 0, 0)),
+             Item('Hunting Bow', 'weapon', 'common', (1, 0, 0, 0)),  # Bows
+             Item('Shortbow', 'weapon', 'well-made', (2, 0, 0, 0)),
+             Item('Longbow', 'weapon', 'expert', (3, 0, 0, 0)),
+             Item('Fail-not Bow', 'weapon', 'masterwork', (4, 0, 0, 0)),
+             Item('Stick', 'weapon', 'common', (1, 0, 0, 0)),  # Staffs
+             Item('Staff', 'weapon', 'well-made', (2, 0, 0, 0)),
+             Item('Oaken Staff', 'weapon', 'expert', (3, 0, 0, 0)),
+             Item('Archmage\'s Staff', 'weapon', 'masterwork', (4, 0, 0, 0)),
+             Item('Tunic', 'chest', 'common', (0, 1, 0, 0)),  # T1C Armor
+             Item('Robe', 'chest', 'common', (0, 1, 0, 0)),
+             Item('Gambeson', 'chest', 'common', (0, 2, -1, 0)),
+             Item('Leather Armor', 'chest', 'common', (0, 2, 0, 0)),
+             Item('Studded Armor', 'chest', 'well-made', (0, 3, -1, 0)),  # T2C
+             Item('Hide Armor', 'chest', 'well-made', (0, 2, 0, 0)),
+             Item('Chainmail', 'chest', 'well-made', (0, 4, -2, 0)),
+             Item('Scale Mail', 'chest', 'expert', (0, 3, 0, 0)),  # T3C
+             Item('Breastplate', 'chest', 'expert', (0, 4, -1, 0)),
+             Item('Half-Plate', 'chest', 'expert', (0, 5, -2, 0)),
+             Item('Plate Armor', 'chest', 'masterwork', (0, 6, -2, 0)),  # T4C
+             Item('Ring Mail', 'chest', 'masterwork', (0, 5, -1, 0)),
+             Item('Splint Armor', 'chest', 'masterwork', (0, 4, 0, 0)),
+             Item('Sandals', 'feet', 'common', (0, 0, 1, 0)),  # Feet
+             Item('Shoes', 'feet', 'common', (0, 0, 1, 0)),
+             Item('Boots', 'feet', 'common', (0, 0, 1, 0)),
+             Item('Cobbled Shoes', 'feet', 'common', (0, 0, 1, 0)),
+             Item('Leather Boots', 'feet', 'well-made', (0, 0, 2, 0)),
+             Item('Greaves', 'feet', 'expert', (0, 0, 3, 0)),
+             Item('Plate Books', 'feet', 'masterwork', (0, 0, 4, 0)),
+             Item('Gloves', 'hands', 'common', (0, 1, 0, 0)),  # Hands
+             Item('Bracelets', 'hands', 'common', (1, 0, 0, 0)),
+             Item('Bracers', 'hands', 'well-made', (1, 1, 0, 0)),
+             Item('Gauntlets', 'hands', 'expert', (1, 2, 0, 0)),
+             Item('Steel Gauntlets', 'hands', 'masterwork', (2, 2, 0, 0)),
+             Item('Hood', 'head', 'common', (0, 1, 0, 0)),  # Head
+             Item('Steel Cap', 'head', 'well-made', (0, 2, 0, 0)),
+             Item('Helmet', 'head', 'expert', (0, 3, 0, 0)),
+             Item('Sallet', 'head', 'masterwork', (0, 4, 0, 0)),
+             Item('Circlet', 'head', 'well-made', (0, 0, 0, 2)),
+             Item('Crown', 'head', 'masterwork', (0, 0, 0, 5)),
+             Item('Cap', 'head', 'well-made', (0, 3, 0, 0)))
+common_items = (item for item in all_items if item.rarity == 'common')
+well_made_items = (item for item in all_items if item.rarity == 'well-made')
+expert_items = (item for item in all_items if item.rarity == 'expert')
+masterwork_items = (item for item in all_items if item.rarity == 'masterwork')
+
+
+def print_map_item_list():
+    """Print all map items."""
+    for item in all_items:
+        text = item.name
+        text += f' ({item.type}) ({item.rarity}):'
+        text += f' {item.effects}: {item.cost}'
+        print(text)
