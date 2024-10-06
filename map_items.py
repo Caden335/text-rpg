@@ -206,6 +206,7 @@ class Band(MapItem):
         members (list): list of all members
         movement (int): movement in miles per/turn
         gold (int): gold stored
+        inv (list): items
     """
 
     def __init__(self, leader):
@@ -229,6 +230,7 @@ class Band(MapItem):
         map_items.append(self)
         self.movement = 10
         self.gold = 0
+        self.inv = []
 
     def __str__(self):
         """Print map item info.
@@ -254,13 +256,27 @@ class Band(MapItem):
         self.x += x
         self.y += y
 
-    def wander(self):
-        """Randomly move in any direction."""
+    def wander(self, say):
+        """Randomly move in any direction.
+
+        Args:
+            say (bool): Print or not
+        """
         x = random.randint(-self.movement, self.movement)
         y = self.movement - abs(x)
         if random.random() < 0.5:
             y = -y
         self.move(x, y)
+        if say:
+            ns = 'S'
+            ew = 'W'
+            if y > 0:
+                ns = 'N'
+            if x > 0:
+                ew = 'E'
+            loc = self.calculate_dir()
+            print(f'{self.name} has moved {y} {ns} and {x} {ew} '
+                  f'and is now {loc[0]:.1f} miles {loc[1]}')
         while any((self.x == loc.x and self.y == loc.y and
                    not self == loc) for loc in map_items):
             self.x += 1
@@ -281,6 +297,8 @@ class PlayerParty(Band):
         members (list): list of all members
         movement (int): movement in miles per/turn
         target_move (MapItem): target to move towards
+        gold (int): gold
+        inv (list): items
     """
 
     def __init__(self, leader):
@@ -299,6 +317,7 @@ class PlayerParty(Band):
         self.members = [leader]
         self.movement = 10
         self.gold = 100
+        self.inv = []
         self.target_move = None
 
     def __str__(self):
@@ -388,6 +407,7 @@ class MonsterBand(Band):
         members (list): list of all members
         movement (int): movement in miles per/turn
         diff (int): difficulty
+        inv (list): items
     """
 
     def __init__(self, type, lvl, amt):
@@ -398,22 +418,37 @@ class MonsterBand(Band):
             lvl (int): Level of enemies
             amt (int): Amount of enemies
         """
+        # Basic stats for all
+        atk = 5 + (2 * lvl)
+        ac = 5 + (2 * lvl)
+        dge = 5 + (2 * lvl)
+        hp = 20 + (5 * lvl)
+        # Elite monster in charge
         prefixes = ('Raging ', 'Vicious ', 'Bloodthirsty ',
                     'Alpha ', 'Great ', 'Giant ')
         prefix = prefixes[random.randint(0, len(prefixes) - 1)]
-        atk = 5 + lvl
-        ac = 5 + lvl
-        dge = 5 + lvl
-        hp = 10 + (10 * lvl)
         self.leader = entities.Entity(prefix + type,
-                                      atk + 4, ac + 2, dge + 1, hp + lvl)
+                                      atk + 6, ac + 2, dge + 1, hp + lvl)
         super().__init__(self.leader)
-        self.gold += 50 + (20 * lvl)
+        # Generate generic monsters
         for i in range(amt - 1):
             self.members.append(entities.Entity(type, atk, ac, dge, hp))
             self.gold += 10 + (10 * lvl)
+        # Unique setup
         self.hostile = True
         self.diff = lvl
+        # Drops
+        self.gold += 30 + ((20 * lvl) * amt)
+        if lvl == 1 or lvl == 2:
+            item_pool = items.common_items
+        elif lvl == 3:
+            item_pool = items.well_made_items
+        elif lvl == 4:
+            item_pool = items.expert_items
+        elif lvl == 5:
+            item_pool = items.masterwork_items
+        rand = random.randint(0, len(items.common_items) - 1)
+        self.inv = [item_pool[rand]]
 
     def __str__(self):
         """Print map item info.

@@ -4,10 +4,6 @@ Author: Caden VanV
 Version: 10/4/2024
 """
 
-import random
-import entities
-import map_items
-
 
 class Item:
     """Stores a unique item.
@@ -75,6 +71,20 @@ class Item:
         for i, effect in enumerate(self.effects):
             if effect != 0:
                 print(f'     {bonus_order[i]}: {effect}\n')
+        return result
+
+    def one_line(self):
+        """One line version of above.
+
+        Returns:
+            str: String
+        """
+        result = f'{self.name} ({self.rarity}): '
+        bonus_order = ('Atk', 'AC', 'Dge', 'HP')
+        for i, effect in enumerate(self.effects):
+            if effect != 0:
+                result += f'{effect} {bonus_order[i]}, '
+        result = result[:-2]
         return result
 
     def equip(self, person):

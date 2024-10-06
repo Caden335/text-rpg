@@ -7,6 +7,7 @@ import random
 import entities
 import map_items
 import rpg_lists
+import math
 
 
 def create_world():
@@ -22,7 +23,7 @@ def create_world():
     for _i in range(random.randint(12, 15)):
         type = random.randint(0, len(rpg_lists.generic_enemy_types) - 1)
         map_items.MonsterBand(rpg_lists.generic_enemy_types[type],
-                              random.randint(0, 4), random.randint(2, 5))
+                              1, random.randint(2, 5))
 
 
 def global_turn(player, day):
@@ -37,14 +38,24 @@ def global_turn(player, day):
     """
     print(f'\n========================== Day {day} '
           '==========================')
+    # AI Turns
     for item in map_items.map_items:
         if item.mobile:
-            item.wander()
+            if item == player.target_move:
+                item.wander(True)
+            else:
+                item.wander(False)
         else:
             item.generate_items()
             item.generate_recruitables()
             item.wealth = int(item.wealth * ((random.random() / 10) + 0.95))
+    # Add new enemy parties, level scaling every 2.5 days
+    if random.random() > 0.7:
+        map_items.MonsterBand(rpg_lists.generic_enemy_types[type],
+                              math.ceil(day / 2.5), random.randint(2, 5))
+    # Player goes
     select_options(player)
+    # Increment day
     day += 1
     return day
 
@@ -73,9 +84,9 @@ def select_options(player):
             if your_choice not in actions:
                 print('Invalid selection, try again')
         # What happens
-        if your_choice == 'Rest':
+        if your_choice.lower() == 'rest':
             break
-        elif your_choice == 'Continue Movement':
+        elif your_choice.lower() == 'continue moving':
             print()
             player.move_to(player.target_move)
             can_move = False
@@ -85,10 +96,12 @@ def select_options(player):
                          item.mobile and item.hostile)
             create_encounter(player, enemy)
             break
-        elif your_choice == 'New Movement':
+        elif your_choice.lower() == 'new move':
             back = new_move(player)
-            if not back == 'Back':
-                break
+            if not back.lower() == 'back':
+                can_move = False
+        elif your_choice.lower() == 'interact with settlement':
+            print()
 
 
 def get_actions(player, can_move):
@@ -109,9 +122,9 @@ def get_actions(player, can_move):
            for item in map_items.map_items):
         actions.append('Interact With Settlement')
     if player.target_move is not None and can_move:
-        actions.append('Continue Movement')
+        actions.append('Continue Moving')
     if can_move:
-        actions.append('New Movement')
+        actions.append('New Move')
     actions.append('Rest')
     return actions
 
@@ -209,13 +222,20 @@ def create_encounter(team1, team2):
         winning_team = team1.members
         team1.gold += team2.gold
         map_items.map_items.remove(team2)
+        # Print loot
+        print('Loot:')
+        print(f'    {team2.gold} gold')
+        for item in team2.inv:
+            team1.inv.append(item)
+            print('   ', item.one_line())
+        print()
     else:
         print('-----------------\nWinners - Team 2\n-----------------')
         winning_team = team2.members
         team2.gold += team1.gold
     print('Survivors')
     for char in winning_team:
-        print(f'{char.name}: {char.cur_hp}/{char.max_hp} hp')
+        print(f'{char.name}: {char.cur_hp:.1f}/{char.max_hp} hp')
         char.cur_hp = char.max_hp
 
 
@@ -243,7 +263,6 @@ def take_turn(team, enemy_team):
                     char.attack(enemy_team[target])
                     if enemy_team[target].cur_hp <= 0:
                         dead_enemies.append(target)
-                    print()
                 else:
                     print('Invalid target, please try again')
         else:
@@ -251,7 +270,7 @@ def take_turn(team, enemy_team):
             char.attack(enemy_team[target])
             if enemy_team[target].cur_hp <= 0:
                 dead_enemies.append(target)
-            print()
         if dead_enemies == possible_targets:
             return dead_enemies
+    print()
     return dead_enemies

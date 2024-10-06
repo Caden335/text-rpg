@@ -9,7 +9,7 @@ import entities
 import map_items
 
 if __name__ == "__main__":
-    print(f'\n========================== Begin Campaign '
+    print('\n========================== Begin Campaign '
           '==========================')
     main_char = entities.PlayerCharacter()
     adv_party = map_items.PlayerParty(main_char)
