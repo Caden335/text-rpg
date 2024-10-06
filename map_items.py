@@ -22,8 +22,24 @@ def print_map_items():
         if not item.mobile:
             text += f'\n     Wealth: {item.wealth:,}'
         location = item.calculate_dir()
-        text += f'\n     {location[0]:.1f} units {location[1]}'
+        text += f'\n     {location[0]:.1f} miles {location[1]}'
         print(text)
+
+
+def print_map_item(item):
+    """Print map item following above template.
+
+    Args:
+        item (MapItem): Map item being printed
+    """
+    text = item.name
+    if item.mobile:
+        text += f' ({len(item.members)})'
+    if not item.mobile:
+        text += f'\n     Wealth: {item.wealth:,}'
+    location = item.calculate_dir()
+    text += f'\n     {location[0]:.1f} miles {location[1]}'
+    print(text)
 
 
 class MapItem:
@@ -64,7 +80,7 @@ class MapItem:
         result = f'{self.name}\n'
         result += f'     Leader: {self.leader.name}\n'
         result += f'     Hostile: {self.hostile}\n'
-        result += f'     Location: {location[0]:.1f} units {location[1]}\n'
+        result += f'     Location: {location[0]:.1f} miles {location[1]}\n'
         return result
 
     def debug_print_all(self):
@@ -91,9 +107,9 @@ class MapItem:
         # We must have a second copy of "EAST" in the
         # list as 0-8 has 9 integer slots, and in this mod 8 system,
         # 0 = 8, similar to how circles work.
-        theta = round((math.atan2(self.y, self.x)/math.pi) * 8 + 4)
-        directions = ("EAST", "NORTHEAST", "NORTH", "NORTHWEST",
-                      "WEST", "SOUTHWEST", "SOUTH", "SOUTHEAST", "EAST")
+        theta = round((math.atan2(self.y, self.x)/math.pi) * 4 + 4)
+        directions = ("E", "NE", "N", "NW",
+                      "W", "SW", "S", "SE", "E")
         return (dist, directions[theta])
 
 
@@ -148,7 +164,7 @@ class Settlement(MapItem):
         result = f'{self.name}\n'
         result += f'     Leader: {self.leader.name}\n'
         result += f'     Wealth: {self.wealth}\n'
-        result += f'     Location: {location[0]:.1f} units {location[1]}\n'
+        result += f'     Location: {location[0]:.1f} miles {location[1]}\n'
         return result
 
     def generate_items(self):
@@ -188,7 +204,7 @@ class Band(MapItem):
         player (bool): player controlled?
         leader (Entity): being in charge, equals members[0]
         members (list): list of all members
-        movement (int): movement in units per/turn
+        movement (int): movement in miles per/turn
         gold (int): gold stored
     """
 
@@ -224,7 +240,7 @@ class Band(MapItem):
         result = f'{self.name}\n'
         result += f'     Leader: {self.leader.name}\n'
         result += f'     Hostile: {self.hostile}\n'
-        result += f'     Location: {location[0]:.1f} units {location[1]}\n'
+        result += f'     Location: {location[0]:.1f} miles {location[1]}\n'
         result += f'     Member Count: {len(self.members)}'
         return result
 
@@ -263,7 +279,7 @@ class PlayerParty(Band):
         player (bool): always True
         leader (Entity): player character
         members (list): list of all members
-        movement (int): movement in units per/turn
+        movement (int): movement in miles per/turn
         target_move (MapItem): target to move towards
     """
 
@@ -318,19 +334,29 @@ class PlayerParty(Band):
         """
         dist_x = target.x - self.x
         dist_y = target.y - self.y
-        dist = math.sqrt(math.pow(dist_x, 2) + math.pow(dist_y, 2))
-        if dist < 1:
-            mult = self.movement / dist
-            move_x = int(dist_x * mult)
-            move_y = int(dist_y * mult)
-            self.move(move_x, move_y)
-            self.target_move = target
-        else:
+        total_dist = math.sqrt(dist_x**2 + dist_y**2)
+        if total_dist == 0:
+            print(f"You are already at {target.name}.")
+            return
+        if total_dist <= self.movement:
             self.move(dist_x, dist_y)
             self.target_move = None
-        print(f'You have moved towards {target.name}\n'
-              f'Trip will take an additional '
-              f'{self.calculate_travel_time(target)} days')
+            print(f'You have arrived at {target.name}.')
+        else:
+            move_fraction = self.movement / total_dist
+            move_x = int(dist_x * move_fraction)
+            move_y = int(dist_y * move_fraction)
+            # Makes sure we're staying under the total movement
+            total_move = abs(move_x) + abs(move_y)
+            if total_move > self.movement:
+                scale_factor = self.movement / total_move
+                move_x = int(move_x * scale_factor)
+                move_y = int(move_y * scale_factor)
+            self.move(move_x, move_y)
+            self.target_move = target
+            print(f'You have moved towards {target.name}\n'
+                  f'Trip will take an additional '
+                  f'{self.calculate_travel_time(target)} days')
 
     def calculate_travel_time(self, target):
         """Calculate how long it will take to move towards something.
@@ -359,7 +385,7 @@ class MonsterBand(Band):
         player (bool): always False
         leader (Entity): main monster
         members (list): list of all members
-        movement (int): movement in units per/turn
+        movement (int): movement in miles per/turn
         diff (int): difficulty
     """
 
@@ -398,7 +424,7 @@ class MonsterBand(Band):
         result = f'{self.name}\n'
         result += f'     Leader: {self.leader.name}\n'
         result += f'     Hostile: {self.hostile}\n'
-        result += f'     Location: {location[0]:.1f} units {location[1]}\n'
+        result += f'     Location: {location[0]:.1f} miles {location[1]}\n'
         result += f'     Member Count: {len(self.members)}'
         result += f'     Difficulty: {self.diff}'
         return result

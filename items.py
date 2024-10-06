@@ -59,7 +59,6 @@ class Item:
         elif type == 'weapon':
             cost_mod = 1.2
         self.cost = int(cost_base * cost_mod)
-        all_items.append(self)
 
     def __str__(self):
         """Print item info.
@@ -181,10 +180,10 @@ all_items = (Item('Ring of Health', 'accessory', 'common', (0, 0, 0, 1)),
              Item('Circlet', 'head', 'well-made', (0, 0, 0, 2)),
              Item('Crown', 'head', 'masterwork', (0, 0, 0, 5)),
              Item('Cap', 'head', 'well-made', (0, 3, 0, 0)))
-common_items = (item for item in all_items if item.rarity == 'common')
-well_made_items = (item for item in all_items if item.rarity == 'well-made')
-expert_items = (item for item in all_items if item.rarity == 'expert')
-masterwork_items = (item for item in all_items if item.rarity == 'masterwork')
+common_items = [item for item in all_items if item.rarity == 'common']
+well_made_items = [item for item in all_items if item.rarity == 'well-made']
+expert_items = [item for item in all_items if item.rarity == 'expert']
+masterwork_items = [item for item in all_items if item.rarity == 'masterwork']
 
 
 def print_map_item_list():

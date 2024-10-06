@@ -58,9 +58,11 @@ def select_options(player):
     can_move = True
     while True:
         # Print possible actions
+        actions = get_actions(player, can_move)
+        if len(actions) == 1 and actions [0] == 'Rest':
+            break
         print('-----------------\nPlayer Actions\n'
               '-----------------')
-        actions = get_actions(player, can_move)
         for action in actions:
             print(f'{action}')
         print('-----------------')
@@ -83,6 +85,10 @@ def select_options(player):
                          for item in map_items.map_items)
             create_encounter(player, enemy)
             break
+        elif your_choice == 'New Movement':
+            back = new_move(player)
+            if not back == 'Back':
+                break
 
 
 def get_actions(player, can_move):
@@ -108,6 +114,33 @@ def get_actions(player, can_move):
         actions.append('New Movement')
     actions.append('Rest')
     return actions
+
+
+def new_move(player):
+    """Create new movement.
+
+    Args:
+        player (PlayerParty): player party
+
+    Returns:
+        str: Back or not
+    """
+    print('-----------------\nNearby Locations\n-----------------')
+    for loc in map_items.map_items:
+        if loc.calculate_dir()[0] < 50:
+            map_items.print_map_item(loc)
+    your_choice = 'None'
+    while not any(your_choice == lc.name for lc in map_items.map_items):
+        your_choice = input('Where do you want to go? ')
+        if your_choice == 'Back':
+            return 'Back'
+        if not any(your_choice == lc.name for lc in map_items.map_items):
+            print('Invalid selection, try again')
+        else:
+            select = next(item for item in map_items.map_items
+                          if your_choice == item.name)
+    player.move_to(select)
+    return 'Not'
 
 
 def pick_team(team):
