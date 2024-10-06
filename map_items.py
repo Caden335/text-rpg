@@ -82,34 +82,15 @@ class MapItem:
         Returns:
             tuple: direction and distance
         """
-        dist = math.sqrt(math.pow(self.x, 2) + math.pow(self.y, 2))
-        if self.y > 0:
-            if self.y / 2 > abs(self.x):
-                dir = 'North'
-            elif not abs(self.x) / 2 > self.y:
-                if self.x > 0:
-                    dir = 'Northeast'
-                else:
-                    dir = 'Northwest'
-            elif abs(self.x) / 2 > self.y:
-                if self.x > 0:
-                    dir = 'East'
-                else:
-                    dir = 'West'
-        else:
-            if abs(self.y) / 2 > abs(self.x):
-                dir = 'South'
-            elif not abs(self.x) / 2 > abs(self.y):
-                if self.x > 0:
-                    dir = 'Southeast'
-                else:
-                    dir = 'Southwest'
-            elif abs(self.x) / 2 > abs(self.y):
-                if self.x > 0:
-                    dir = 'East'
-                else:
-                    dir = 'West'
-        return (dist, dir)
+        dist = (self.x*self.x + self.y*self.y)**0.5
+        # atan2 gives angle from EAST in radians (-pi to pi), then we normalize it to -1 to 1, then 0 to 8. 
+        # Rounding gives nearest cardinal direction, then we spit that out as an index in the direction list.
+        # We must have a second copy of "EAST" in the list as 0-8 has 9 integer slots, and in this mod 8 system,
+        # 0 = 8, similar to how circles work.
+        theta = round((atan2(self.y, self.x)/math.pi) * 8 + 4) 
+        directions = ("EAST", "NORTHEAST", "NORTH", "NORTHWEST", "WEST", "SOUTHWEST", "SOUTH", "SOUTHEAST", "EAST")
+            
+        return (dist, directions[theta])
 
 
 class Settlement(MapItem):
