@@ -87,7 +87,7 @@ class MapItem:
         # Rounding gives nearest cardinal direction, then we spit that out as an index in the direction list.
         # We must have a second copy of "EAST" in the list as 0-8 has 9 integer slots, and in this mod 8 system,
         # 0 = 8, similar to how circles work.
-        theta = round((atan2(self.y, self.x)/math.pi) * 8 + 4) 
+        theta = round((atan2(self.y, self.x)/math.pi) * 4 + 4) 
         directions = ("EAST", "NORTHEAST", "NORTH", "NORTHWEST", "WEST", "SOUTHWEST", "SOUTH", "SOUTHEAST", "EAST")
             
         return (dist, directions[theta])
