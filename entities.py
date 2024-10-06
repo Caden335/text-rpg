@@ -201,11 +201,16 @@ class Entity:
         Args:
             enemy (Entity): Target entity
         """
-        hit = random.randint(1, 10)
-        damage = (self.atk * ((random.randint(0, 10) / 10) + 0.5))
-        damage = damage * ((10 - enemy.ac) / 10)
-        damage = float(f'{damage:.1f}')  # Truncates to 1 decimal point
-        if hit >= enemy.dge:
+        # Hit chance, base chance 50% + 5% for each dif in atk and dge 
+        hit_chance = (self.atk - enemy.dge) / 20 + .5
+        # Base damage is atk minus half enemy armor. Can't be below 0
+        damage = max(0, (self.atk - (self.ac / 2)))
+        # Damage range is 80% - 120% of base damage
+        damage *= ((random.randint(3, 7) / 10) + 0.5)
+        # Truncates to 1 decimal just in case math adds unecessary digits
+        damage = float(f'{damage:.1f}')
+        if damage
+        if random.random <= hit_chance:
             print(f'{self.name} hit their attack against '
                   f'{enemy.name} for {damage} points')
             enemy.take_damage(damage)
