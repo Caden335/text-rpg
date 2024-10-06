@@ -74,7 +74,7 @@ def select_options(player):
         print('-----------------\nPlayer Actions\n'
               '-----------------')
         for action in actions:
-            print(f'{action}')
+            print(f'{action.capitalize()}')
         print('-----------------')
         # Pick action
         your_choice = -1
@@ -120,16 +120,16 @@ def get_actions(player, can_move):
     actions = []
     if any(item.x == 0 and item.y == 0 and item.mobile and item.hostile
            for item in map_items.map_items):
-        actions.append('Fight Enemy')
+        actions.append('fight enemy')
     if any(item.x == 0 and item.y == 0 and not item.mobile
            for item in map_items.map_items):
-        actions.append('Settlement')
+        actions.append('settlement')
     if player.target_move is not None and can_move:
-        actions.append('Continue Moving')
+        actions.append('continue moving')
     if can_move:
-        actions.append('New Move')
-    actions.append('Party')
-    actions.append('Rest')
+        actions.append('new move')
+    actions.append('party')
+    actions.append('rest')
     return actions
 
 
@@ -386,23 +386,29 @@ def party_view(player):
     while select.lower() != 'finished':  # Keeps running while not finished
         while select.lower() != 'equip' and select.lower() != 'unequip':
             select = input('Equip or Unequip? ')
+            if select == 'finished':
+                return
         # Unequip objects
         if select.lower() == 'unequip':
             print(person.name)
             for key, val in person.items.items():
                 if val is not None:
-                    print(f'     {key}: {val.name}')
-            while not any(select == person.items[val].name
+                    print(f'     {key.capitalize()}: {val.name}')
+            while not any(person.items[val] is not None and
+                          select == person.items[val].name
                           for val in person.items):
                 select = input('Which item do you want to unequip? ')
                 if select.lower() == 'finished':
                     return
-                if not any(select == person.items[val].name
+                if not any(person.items[val] is not None and
+                           select == person.items[val].name
                            for val in person.items):
                     print('Invalid item, try again')
             item = next(person.items[val] for val in person.items
-                        if person.item[val].name == select)
+                        if person.items[val] is not None and
+                        person.items[val].name == select)
             item.unequip()
+            player.inv.append(item)
         # Equip objects
         elif select.lower() == 'equip':
             while not any(select == item.name for item in player.inv):
@@ -413,3 +419,4 @@ def party_view(player):
                     print('Invalid item, try again')
             item = next(item for item in player.inv if item.name == select)
             item.equip(person)
+            player.inv.remove(item)
