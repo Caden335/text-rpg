@@ -5,6 +5,9 @@ Version: 10/4/2024
 """
 
 
+bonus_order = ('Atk', 'AC', 'Dge', 'HP')
+
+
 class Item:
     """Stores a unique item.
 
@@ -67,7 +70,6 @@ class Item:
         result += f'     Rarity: {self.rarity}\n'
         result += f'     Cost: {self.cost}\n'
         # Adds in the effects as needed
-        bonus_order = ('Atk', 'AC', 'Dge', 'HP')
         for i, effect in enumerate(self.effects):
             if effect != 0:
                 print(f'     {bonus_order[i]}: {effect}\n')
@@ -80,7 +82,6 @@ class Item:
             str: String
         """
         result = f'{self.name} ({self.rarity}): '
-        bonus_order = ('Atk', 'AC', 'Dge', 'HP')
         for i, effect in enumerate(self.effects):
             if effect != 0:
                 result += f'{effect} {bonus_order[i]}, '
@@ -100,7 +101,8 @@ class Item:
         self.equipt.atk += self.effects[0]
         self.equipt.ac += self.effects[1]
         self.equipt.dge += self.effects[2]
-        self.equipt.hp += self.effects[3]
+        self.equipt.max_hp += self.effects[3]
+        self.equipt.cur_hp += self.effects[3]
         print(f'{self.equipt.name} equipt {self.name}')
 
     def unequip(self):
@@ -109,7 +111,8 @@ class Item:
         self.equipt.atk -= self.effects[0]
         self.equipt.ac -= self.effects[1]
         self.equipt.dge -= self.effects[2]
-        self.equipt.hp -= self.effects[3]
+        self.equipt.max_hp -= self.effects[3]
+        self.equipt.cur_hp -= self.effects[3]
         print(f'Unequipt {self.name} from {self.equipt.name}')
         self.equipt = None
 
@@ -196,10 +199,17 @@ expert_items = [item for item in all_items if item.rarity == 'expert']
 masterwork_items = [item for item in all_items if item.rarity == 'masterwork']
 
 
-def print_map_item_list():
-    """Print all map items."""
-    for item in all_items:
+def print_item_list(your_list):
+    """Print all items in list.
+
+    Args:
+        your_list (list): list of items
+    """
+    for item in your_list:
         text = item.name
-        text += f' ({item.type}) ({item.rarity}):'
-        text += f' {item.effects}: {item.cost}'
+        text += f' ({item.type}) ({item.rarity}): '
+        for i, effect in enumerate(item.effects):
+            if effect != 0:
+                text += f'{effect} {bonus_order[i]}, '
+        text += f'{item.cost} gold'
         print(text)

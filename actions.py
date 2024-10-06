@@ -4,10 +4,10 @@ Author: Caden VanV
 Version: 10/4/2024
 """
 import random
-import entities
 import map_items
 import rpg_lists
 import math
+import items
 
 
 def create_world():
@@ -50,6 +50,7 @@ def global_turn(player, day):
             item.generate_recruitables()
             item.wealth = int(item.wealth * ((random.random() / 10) + 0.95))
     # Add new enemy parties, level scaling every 2.5 days
+    type = random.randint(0, len(rpg_lists.generic_enemy_types) - 1)
     if random.random() > 0.7:
         map_items.MonsterBand(rpg_lists.generic_enemy_types[type],
                               math.ceil(day / 2.5), random.randint(2, 5))
@@ -70,8 +71,6 @@ def select_options(player):
     while True:
         # Print possible actions
         actions = get_actions(player, can_move)
-        if len(actions) == 1 and actions[0] == 'Rest':
-            break
         print('-----------------\nPlayer Actions\n'
               '-----------------')
         for action in actions:
@@ -85,6 +84,8 @@ def select_options(player):
                 print('Invalid selection, try again')
         # What happens
         if your_choice.lower() == 'rest':
+            for char in player.members:
+                char.heal(100)
             break
         elif your_choice.lower() == 'continue moving':
             print()
@@ -100,8 +101,10 @@ def select_options(player):
             back = new_move(player)
             if not back.lower() == 'back':
                 can_move = False
-        elif your_choice.lower() == 'interact with settlement':
-            print()
+        elif your_choice.lower() == 'settlement':
+            settlement_actions(player)
+        elif your_choice.lower() == 'party':
+            party_view(player)
 
 
 def get_actions(player, can_move):
@@ -120,11 +123,12 @@ def get_actions(player, can_move):
         actions.append('Fight Enemy')
     if any(item.x == 0 and item.y == 0 and not item.mobile
            for item in map_items.map_items):
-        actions.append('Interact With Settlement')
+        actions.append('Settlement')
     if player.target_move is not None and can_move:
         actions.append('Continue Moving')
     if can_move:
         actions.append('New Move')
+    actions.append('Party')
     actions.append('Rest')
     return actions
 
@@ -156,35 +160,115 @@ def new_move(player):
     return 'Not'
 
 
-def pick_team(team):
-    """Create available characters and pick some for team.
+def settlement_actions(player):
+    """Create new movement.
 
     Args:
-        team (list): Your current team
-
-    Returns:
-        list: Your team
+        player (PlayerParty): player party
     """
-    available_characters = [entities.RPGCharacter(), entities.RPGCharacter(),
-                            entities.RPGCharacter(), entities.RPGCharacter(),
-                            entities.RPGCharacter(), entities.RPGCharacter(),
-                            entities.RPGCharacter(), entities.RPGCharacter()]
-    names = []
-    print('----------------- Pick Your Party -----------------')
-    print('Select 4 available characters for your team:')
-    print('------------------------------------------------------')
-    for character in available_characters:
-        print(character)
-        print()
-        names.append(character.name)
-    print('Who Do You Want')
-    for i in range(5 - len(team)):
-        name = input()
-        index = names.index(name)
-        team.append(available_characters.pop(index))
-        names.pop(index)
-        print(f'Team Capacity - {i + 2}/5')
-    return team
+    # Get the settlement
+    settlement = next(item for item in map_items.map_items
+                      if item.x == 0 and item.y == 0)
+    # Print out possible actions
+    print(f'-----------------\n{settlement.name}\n-----------------')
+    actions = ['Recruit', 'Shop']
+    if len(player.members) == 5:
+        actions[0] = actions[0] + ' (party full)'
+    for action in actions:
+        print(action)
+    print('-----------------')
+    # Get action selection
+    select = 'None'
+    while select not in actions:
+        select = input('What would you like to do? ')
+        if select.lower() == 'back':
+            return
+        elif select not in actions:
+            print('Invalid option, try again')
+    if select.lower() == 'recruit':
+        pick_team(player, settlement)
+    elif select.lower() == 'shop':
+        settlement_shop(player, settlement)
+
+
+def settlement_shop(player, settlement):
+    """Buy items from shop.
+
+    Args:
+        player (PlayerParty): Your current team
+        settlement (Settlement): settlement
+    """
+    # Print shop
+    print('-----------------\nSettlement Shop\n-----------------')
+    items.print_item_list(settlement.shop)
+    print('-----------------')
+    print('What do you want to buy?')
+    select = None
+    while select != 'finished':
+        select = input('Type item name or '
+                       'type "finished" to end: ')
+        if any(select == item.name for item in settlement.shop):
+            item = next(item for item in settlement.shop
+                        if item.name == select)
+            if item.cost <= player.gold:
+                player.gold -= item.cost
+                print(f'Successfully bought {item.name} for {item.cost} gold. '
+                      f'You now have {player.gold} left')
+                player.inv.append(item)
+                settlement.shop.remove(item)
+            else:
+                print(f'You do not have enough gold to buy {item.name}, '
+                      'try again')
+        else:
+            print('Invalid selection, try again')
+
+
+def pick_team(player, settlement):
+    """Recruit characters from settlement for team.
+
+    Args:
+        player (PlayerParty): Your current team
+        settlement (Settlement): settlement
+    """
+    # Print intro and options
+    print('--------------------- Recruit Party Members ---------------------')
+    print(f'Select up to {5 - len(player.members)} available '
+          'characters for your team:')
+    print('--------------------------------------------------------------')
+    for i, character in enumerate(settlement.recruitables):
+        print(f'{i + 1}. {character[0].name} ({character[0].race.name} '
+              f'{character[0].subclass.name} {character[0].lvl}): '
+              f'{character[1]} gold')
+    print('-----------------')
+    # Recruit people
+    print('Who Do You Want?')
+    selected = []
+    while len(player.members) < 5:
+        index_val = input('Enter number for character '
+                          'or type "finished" to end: ')
+        if index_val.lower() == 'finished':
+            break
+        if index_val.isdigit():
+            index_val = int(index_val) - 1
+            if settlement.recruitables[index_val][1] <= player.gold:
+                player.gold -= settlement.recruitables[index_val][1]
+                print('Successfully recruited '
+                      f'{settlement.recruitables[index_val][0].name} '
+                      f'for {settlement.recruitables[index_val][1]} '
+                      f'gold. You now have {player.gold} left')
+                settlement.recruitables[index_val][0].player = True
+                player.members.append(settlement.recruitables[index_val][0])
+                selected.append(index_val)
+                print(f'Team Capacity - {len(player.members)}/5')
+            else:
+                print('You do not have enough gold to recruit'
+                      f'{settlement.recruitables[index_val][0].name}, '
+                      'try again')
+        else:
+            print('Invalid pick, try again')
+    settlement.recruitables = [char for i, char in
+                               enumerate(settlement.recruitables)
+                               if i not in selected]
 
 
 def create_encounter(team1, team2):
@@ -219,7 +303,6 @@ def create_encounter(team1, team2):
     print('----------------- Encounter Over -----------------')
     if len(team1.members) > 0:
         print('-----------------\nWinners - Team 1\n-----------------')
-        winning_team = team1.members
         team1.gold += team2.gold
         map_items.map_items.remove(team2)
         # Print loot
@@ -228,15 +311,13 @@ def create_encounter(team1, team2):
         for item in team2.inv:
             team1.inv.append(item)
             print('   ', item.one_line())
+        team1.leader = team1.members[0]
         print()
     else:
         print('-----------------\nWinners - Team 2\n-----------------')
-        winning_team = team2.members
         team2.gold += team1.gold
+        team2.leader = team2.members[0]
     print('Survivors')
-    for char in winning_team:
-        print(f'{char.name}: {char.cur_hp:.1f}/{char.max_hp} hp')
-        char.cur_hp = char.max_hp
 
 
 def take_turn(team, enemy_team):
@@ -265,6 +346,7 @@ def take_turn(team, enemy_team):
                         dead_enemies.append(target)
                 else:
                     print('Invalid target, please try again')
+            print()
         else:
             target = random.randint(0, len(enemy_team) - 1)
             char.attack(enemy_team[target])
@@ -274,3 +356,60 @@ def take_turn(team, enemy_team):
             return dead_enemies
     print()
     return dead_enemies
+
+
+def party_view(player):
+    """Party view.
+
+    Args:
+        player (PlayerParty): Your current team
+    """
+    # Print party members
+    print('-----------------\nParty Members\n-----------------')
+    for char in player.members:
+        print(char)
+        print()
+    # Print party inventory
+    print('-----------------\nParty Inventory\n-----------------')
+    items.print_item_list(player.inv)
+    # Char item actions
+    print('-----------------\nItem Actions\n-----------------')
+    person = 'None'
+    while not any(person == char.name for char in player.members):
+        person = input('Select character: ')
+        if person == 'finished':
+            return
+        if not any(person == char.name for char in player.members):
+            print('Invalid option, try again')
+    person = next(char for char in player.members if char.name == person)
+    select = 'None'
+    while select.lower() != 'finished':  # Keeps running while not finished
+        while select.lower() != 'equip' and select.lower() != 'unequip':
+            select = input('Equip or Unequip? ')
+        # Unequip objects
+        if select.lower() == 'unequip':
+            print(person.name)
+            for key, val in person.items.items():
+                if val is not None:
+                    print(f'     {key}: {val.name}')
+            while not any(select == person.items[val].name
+                          for val in person.items):
+                select = input('Which item do you want to unequip? ')
+                if select.lower() == 'finished':
+                    return
+                if not any(select == person.items[val].name
+                           for val in person.items):
+                    print('Invalid item, try again')
+            item = next(person.items[val] for val in person.items
+                        if person.item[val].name == select)
+            item.unequip()
+        # Equip objects
+        elif select.lower() == 'equip':
+            while not any(select == item.name for item in player.inv):
+                select = input('Which item do you want to equip? ')
+                if select.lower() == 'finished':
+                    return
+                if not any(select == item.name for item in player.inv):
+                    print('Invalid item, try again')
+            item = next(item for item in player.inv if item.name == select)
+            item.equip(person)

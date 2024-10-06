@@ -307,7 +307,7 @@ class PlayerParty(Band):
         Args:
             leader (Entity): leader and first member of party.
         """
-        self.name = f'{leader.name}\'s Party'
+        self.name = 'Player Party'
         self.x = 0
         self.y = 0
         self.mobile = True

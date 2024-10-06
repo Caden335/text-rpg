@@ -418,7 +418,7 @@ class PlayerCharacter(RPGCharacter):
                 print('Invalid selection, try again')
             else:
                 select = next(rc for rc in races if select_name == rc.name)
-        self.race = select.name
+        self.race = select
         self.atk += select.stats[0]
         self.ac += select.stats[1]
         self.dge += select.stats[2]
