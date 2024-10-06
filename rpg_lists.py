@@ -4,39 +4,6 @@ Author: Caden VanV
 Version: 10/4/2024
 """
 
-# Stores General Information
-# Classes contains class name, subclasses, and their stats
-# Standard defense (armor + dodge) + attack = 15
-rpg_classes = ({'Class': 'Warrior',
-                'Subclasses': ('Knight', 'Berserker', 'Ranger'),
-                'Attacks': (6, 8, 5),
-                'Armor': (8, 2, 5),
-                'Dodge': (1, 5, 5),
-                'Health': (14, 14, 12)},
-               {'Class': 'Rogue',
-                'Subclasses': ('Thief', 'Assassin', 'Duelist'),
-                'Attacks': (4, 9, 6),
-                'Armor': (3, 1, 4),
-                'Dodge': (8, 5, 5),
-                'Health': (8, 8, 10)},
-               {'Class': 'Magus',
-                'Subclasses': ('Elemental Caster', 'Light Mage', 'Dark Mage'),
-                'Attacks': (11, 8, 15),
-                'Armor': (1, 3, 0),
-                'Dodge': (3, 4, 0),
-                'Health': (8, 8, 14)},
-               {'Class': 'Priest',
-                'Subclasses': ('Cleric', 'Paladin', 'Zealot'),
-                'Attacks': (9, 7, 12),
-                'Armor': (2, 6, 0),
-                'Dodge': (4, 2, 3),
-                'Health': (8, 12, 10)})
-
-# Races contains race name and their stat additions
-rpg_races = (('Human', 0, 0, 0, 1),
-             ('Elf', 0, 0, 2, -1),
-             ('Dwarf', 0, 2, -1, 0),
-             ('Orc', 0, -1, 0, 2))
 
 # Character names
 rpg_names = ('Aaron', 'Abraham', 'Adam', 'Alan', 'Alec',

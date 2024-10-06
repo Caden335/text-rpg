@@ -9,11 +9,8 @@ import map_items
 import rpg_lists
 
 
-turn = 1
-
-
 def create_world():
-    """Generate settlements and enemies."""
+    """Generate settlements, and enemies."""
     for _i in range(random.randint(4, 8)):
         s_pref = [pref for pref in rpg_lists.rpg_names
                   if len(pref) <= 4]
