@@ -239,10 +239,9 @@ class Entity:
         Args:
             amt (int): Heal amt
         """
-        self.cur_hp += amt
-        if self.cur_hp > self.max_hp:
+        if amt > self.max_hp - self.cur_hp:
             amt = self.max_hp - self.cur_hp
-            self.cur_hp = float(self.max_hp)
+        self.cur_hp += amt
         print(f'{self.name} heals by {int(amt)} hp'
               f'and is now at {self.cur_hp}/{self.max_hp}')
 
@@ -375,7 +374,7 @@ class PlayerCharacter(RPGCharacter):
         print('Select Class\n'
               '-----------------')
         for rpg_class in rpg_classes:
-            print(rpg_class.name)
+            print(f'{rpg_class.name} -\t{rpg_class.desc}')
         print('-----------------')
         # Pick option
         select = "None"

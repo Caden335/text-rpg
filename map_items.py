@@ -262,25 +262,54 @@ class Band(MapItem):
         Args:
             say (bool): Print or not
         """
-        x = random.randint(-self.movement, self.movement)
-        y = self.movement - abs(x)
-        if random.random() < 0.5:
-            y = -y
-        self.move(x, y)
-        if say:
-            ns = 'S'
-            ew = 'W'
-            if y > 0:
-                ns = 'N'
-            if x > 0:
-                ew = 'E'
-            loc = self.calculate_dir()
-            print(f'{self.name} has moved {y} {ns} and {x} {ew} '
-                  f'and is now {loc[0]:.1f} miles {loc[1]}')
-        while any((self.x == loc.x and self.y == loc.y and
-                   not self == loc) for loc in map_items):
-            self.x += 1
-            self.y += 1
+        if ((self.hostile and abs(self.x) <= 15 and abs(self.y) <= 15 and
+             not any(item.x == 0 and item.y == 0 for item in map_items))):
+            dist_x = -self.x
+            dist_y = -self.y
+            total_dist = math.sqrt(dist_x**2 + dist_y**2)
+            if total_dist <= self.movement:
+                self.move(dist_x, dist_y)
+            else:
+                move_fraction = self.movement / total_dist
+                move_x = int(dist_x * move_fraction)
+                move_y = int(dist_y * move_fraction)
+                # Makes sure we're staying under the total movement
+                total_move = abs(move_x) + abs(move_y)
+                if total_move > self.movement:
+                    scale_factor = self.movement / total_move
+                    move_x = int(move_x * scale_factor)
+                    move_y = int(move_y * scale_factor)
+                self.move(move_x, move_y)
+                ns = 'S'
+                ew = 'W'
+                if move_y > 0:
+                    ns = 'N'
+                if move_x > 0:
+                    ew = 'E'
+                loc = self.calculate_dir()
+                print(f'{self.name} has moved {move_y} {ns}'
+                      f'and {move_x} {ew} towards you '
+                      f'and is now {loc[0]:.1f} miles {loc[1]}')
+        else:
+            x = random.randint(-self.movement, self.movement)
+            y = self.movement - abs(x)
+            if random.random() < 0.5:
+                y = -y
+            self.move(x, y)
+            if say:
+                ns = 'S'
+                ew = 'W'
+                if y > 0:
+                    ns = 'N'
+                if x > 0:
+                    ew = 'E'
+                loc = self.calculate_dir()
+                print(f'{self.name} has moved {y} {ns} and {x} {ew} '
+                      f'and is now {loc[0]:.1f} miles {loc[1]}')
+            while any((self.x == loc.x and self.y == loc.y and
+                       not self == loc) for loc in map_items):
+                self.x += 1
+                self.y += 1
 
 
 class PlayerParty(Band):
@@ -442,6 +471,8 @@ class MonsterBand(Band):
             item_pool = items.expert_items
         elif lvl == 5:
             item_pool = items.masterwork_items
+        else:
+            item_pool = items.common_items
         rand = random.randint(0, len(items.common_items) - 1)
         self.inv = [item_pool[rand]]
 

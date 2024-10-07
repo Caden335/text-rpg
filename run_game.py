@@ -21,7 +21,7 @@ if __name__ == "__main__":
           'combination of\nADHD and boredom is fully functional however, and '
           'is questionably engaging\nat best. If you are in a menu and want'
           'to go back, you can enter the word\n"back" or "finished" to'
-          'return.\n\nThe combt system in this game is based off of 4 stats:'
+          'return.\n\nThe combt system in this game is based off of 4 stats: '
           'attack, armor, dodge,\nand hp. The chance to hit is based off of '
           'your attack compared to enemy\ndefense, and damage is based off of '
           'your attack minus half of their armor.\nHP is fairly obvious, as '

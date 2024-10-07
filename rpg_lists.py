@@ -88,7 +88,7 @@ rpg_names = ('Aaron', 'Abraham', 'Adam', 'Alan', 'Alec',
 # Generic enemy types
 generic_enemy_types = ('Wolf', 'Orc Brute', 'Bandit', 'Mercenary', 'Skeleton',
                        'Goblin', 'Bear', 'Troll', 'Giant', 'Giant Spider',
-                       'Slime')
+                       'Slime', 'Deserter', 'Canada Goose', 'Balrog')
 
 # Settlement name parts
 settlement_suf = ('shire', 'sburg', 'sfeld', 'ville',

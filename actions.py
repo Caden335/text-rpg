@@ -49,11 +49,11 @@ def global_turn(player, day):
             item.generate_items()
             item.generate_recruitables()
             item.wealth = int(item.wealth * ((random.random() / 10) + 0.95))
-    # Add new enemy parties, level scaling every 2.5 days
+    # Add new enemy parties, level scaling every 10 days
     type = random.randint(0, len(rpg_lists.generic_enemy_types) - 1)
     if random.random() > 0.7:
         map_items.MonsterBand(rpg_lists.generic_enemy_types[type],
-                              math.ceil(day / 2.5), random.randint(2, 5))
+                              min(5, math.ceil(day / 10)), random.randint(2, 5))
     # Player goes
     select_options(player)
     # Increment day
@@ -71,16 +71,18 @@ def select_options(player):
     while True:
         # Print possible actions
         actions = get_actions(player, can_move)
+        if actions == ['party', 'rest']:
+            break
         print('-----------------\nPlayer Actions\n'
               '-----------------')
         for action in actions:
             print(f'{action.capitalize()}')
         print('-----------------')
         # Pick action
-        your_choice = -1
-        while your_choice not in actions:
+        your_choice = "None"
+        while your_choice.lower() not in actions:
             your_choice = input('Select Action: ')
-            if your_choice not in actions:
+            if your_choice.lower() not in actions:
                 print('Invalid selection, try again')
         # What happens
         if your_choice.lower() == 'rest':
@@ -91,7 +93,7 @@ def select_options(player):
             print()
             player.move_to(player.target_move)
             can_move = False
-        elif your_choice == 'Fight Enemy':
+        elif your_choice.lower() == 'fight enemy':
             enemy = next(item for item in map_items.map_items
                          if item.x == 0 and item.y == 0 and
                          item.mobile and item.hostile)
@@ -171,19 +173,19 @@ def settlement_actions(player):
                       if item.x == 0 and item.y == 0)
     # Print out possible actions
     print(f'-----------------\n{settlement.name}\n-----------------')
-    actions = ['Recruit', 'Shop']
+    actions = ['recruit', 'shop']
     if len(player.members) == 5:
         actions[0] = actions[0] + ' (party full)'
     for action in actions:
-        print(action)
+        print(action.capitalize())
     print('-----------------')
     # Get action selection
     select = 'None'
-    while select not in actions:
+    while select.lower() not in actions:
         select = input('What would you like to do? ')
         if select.lower() == 'back':
             return
-        elif select not in actions:
+        elif select.lower() not in actions:
             print('Invalid option, try again')
     if select.lower() == 'recruit':
         pick_team(player, settlement)
