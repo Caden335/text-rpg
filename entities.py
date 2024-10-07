@@ -162,24 +162,25 @@ class Entity:
         max_hp (int): maximum health
         cur_hp (int): current health
         player (bool): player controlled?
+        lvl (int): level
+        xp (int): xp
     """
 
-    def __init__(self, name='Wolf', atk=5, ac=5, dge=5, max_hp=10):
+    def __init__(self, name='Wolf', lvl=1):
         """Create generic entity.
 
         Args:
             name (str): Entity name
-            atk (int): attack
-            ac (int): armor
-            dge (int): dodge
-            max_hp (int): maximum health
+            lvl (int): lvl
         """
         self.name = name
-        self.atk = atk
-        self.ac = ac
-        self.dge = dge
-        self.max_hp = max_hp
-        self.cur_hp = float(max_hp)
+        self.atk = 5 + (3 * lvl)
+        self.ac = 5 + (2 * lvl)
+        self.dge = 5 + (2 * lvl)
+        self.max_hp = 20 + (5 * lvl)
+        self.cur_hp = float(self.max_hp)
+        self.lvl = lvl
+        self.xp = 0
         self.player = False
 
     def __str__(self):
@@ -213,6 +214,7 @@ class Entity:
             print(f'{self.name} hit their attack against '
                   f'{enemy.name} for {damage} points')
             enemy.take_damage(damage)
+            self.add_xp(1)
         else:
             print(f'{self.name} missed their attack against {enemy.name}')
 
@@ -244,6 +246,26 @@ class Entity:
         print(f'{self.name} heals by {int(amt)} hp'
               f'and is now at {self.cur_hp}/{self.max_hp}')
 
+    def level_up(self):
+        """Level up."""
+        self.atk += 3
+        self.ac += 2
+        self.dge += 2
+        self.max_hp += 5
+        self.cur_hp += 5
+
+    def add_xp(self, amt):
+        """Add xp.
+
+        Args:
+            amt (int): amt of xp gained
+        """
+        if self.player:
+            self.xp += amt
+            if self.xp >= self.lvl * 10:
+                self.xp -= self.lvl * 10
+                self.level_up()
+
 
 class RPGCharacter(Entity):
     """Stores a character.
@@ -261,6 +283,7 @@ class RPGCharacter(Entity):
         lvl (int): Level (1-5)
         player (bool): player controlled?
         items (dict): items equipt
+        xp (int): xp had
     """
 
     def __init__(self):
@@ -284,6 +307,7 @@ class RPGCharacter(Entity):
         # Assign the rest of the attributes
         self.player = False
         self.lvl = 1
+        self.xp = 0
         self.items = {'weapon': None, 'chest': None, 'head': None,
                       'hands': None, 'feet': None, 'accessory': None}
 
@@ -308,6 +332,7 @@ class RPGCharacter(Entity):
         self.ac += self.subclass.stats_lvl[1] + self.race.stats[1]
         self.dge += self.subclass.stats_lvl[2] + self.race.stats[2]
         self.max_hp += self.subclass.stats_lvl[3] + self.race.stats[3]
+        print(f'{self.name} leveled up to level {self.lvl}')
 
 
 class PlayerCharacter(RPGCharacter):
@@ -340,6 +365,7 @@ class PlayerCharacter(RPGCharacter):
         self.cur_hp = float(self.max_hp)
         self.player = True
         self.lvl = 1
+        self.xp = 0
         self.items = {'weapon': None, 'chest': None, 'head': None,
                       'hands': None, 'feet': None, 'accessory': None}
 

@@ -419,20 +419,15 @@ class MonsterBand(Band):
             amt (int): Amount of enemies
         """
         # Basic stats for all
-        atk = 5 + (2 * lvl)
-        ac = 5 + (2 * lvl)
-        dge = 5 + (2 * lvl)
-        hp = 20 + (5 * lvl)
         # Elite monster in charge
         prefixes = ('Raging ', 'Vicious ', 'Bloodthirsty ',
                     'Alpha ', 'Great ', 'Giant ')
         prefix = prefixes[random.randint(0, len(prefixes) - 1)]
-        self.leader = entities.Entity(prefix + type,
-                                      atk + 6, ac + 2, dge + 1, hp + lvl)
+        self.leader = entities.Entity(prefix + type, lvl + 1)
         super().__init__(self.leader)
         # Generate generic monsters
         for i in range(amt - 1):
-            self.members.append(entities.Entity(type, atk, ac, dge, hp))
+            self.members.append(entities.Entity(type, lvl))
             self.gold += 10 + (10 * lvl)
         # Unique setup
         self.hostile = True
