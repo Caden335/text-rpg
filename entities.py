@@ -6,6 +6,8 @@ Version: 10/4/2024
 
 import random
 import rpg_lists
+import items
+import abilities
 
 
 class RPGClass:
@@ -45,19 +47,24 @@ class RPGSubclass:
         name (str): name
         stats (tuple): stats
         stats_lvl (tuple): stats gained per lvl
+        abilities (list): abilities gained from lvl 2-5
     """
 
-    def __init__(self, name, stats, stats_lvl):
+    def __init__(self, name, stats, stats_lvl, abil):
         """Create class.
 
         Args:
             name (str): name
             stats (tuple): stats
             stats_lvl (tuple): stats per level
+            abil (list): index of abilities in abilities.all_abilities
         """
         self.name = name
         self.stats = stats
         self.stats_lvl = stats_lvl
+        self.abilities = []
+        for i in range(abil[0], abil[1] + 1):
+            self.abilities.append(abilities.all_abilities[i])
 
     def __str__(self):
         """Return class for printing.
@@ -66,10 +73,13 @@ class RPGSubclass:
             str: class for printing
         """
         text = self.name
-        bonus_order = ('Atk', 'AC', 'Dge', 'HP')
-        for i in range(len(self.stats) - 1):
-            text += f'\n     {bonus_order[i]}: {self.stats[i]} '
-            text += f'+ {self.stats_lvl[i]}/lvl'
+        text += '\n     Stats:\n'
+        for i in range(len(self.stats)):
+            text += f'          {items.bonus_order[i]}: {self.stats[i]} '
+            text += f'+ {self.stats_lvl[i]}/lvl\n'
+        text += '     Abilities:\n'
+        for i, ability in enumerate(self.abilities):
+            text += f'          Level {i + 2}: {ability}\n'
         return text
 
 
@@ -106,43 +116,55 @@ class RPGRace:
 rpg_classes = (RPGClass('Warrior', 'Damage and armor focused class',
                         (RPGSubclass('Knight',
                                      (8, 15, 5, 40),
-                                     (2, 2, 1, 6)),
+                                     (2, 2, 1, 6),
+                                     (0, 3)),
                          RPGSubclass('Berserker',
                                      (15, 6, 5, 40),
-                                     (3, 0, 1, 5)),
+                                     (3, 0, 1, 5),
+                                     (4, 7)),
                          RPGSubclass('Ranger',
                                      (12, 8, 10, 30),
-                                     (2, 1, 2, 6)))),
+                                     (2, 1, 2, 6),
+                                     (8, 11)))),
                RPGClass('Rogue', 'Damage and dodge focused class',
                         (RPGSubclass('Thief',
                                      (10, 5, 15, 25),
-                                     (2, 0, 3, 4)),
+                                     (2, 0, 3, 4),
+                                     (12, 15)),
                          RPGSubclass('Assassin',
                                      (14, 5, 12, 25),
-                                     (3, 0, 2, 4)),
+                                     (3, 0, 2, 4),
+                                     (16, 19)),
                          RPGSubclass('Duelist',
                                      (12, 10, 8, 30),
-                                     (2, 2, 2, 5)))),
+                                     (2, 2, 2, 5),
+                                     (20, 23)))),
                RPGClass('Magus', 'Health and damage focused class',
                         (RPGSubclass('Elemental Caster',
                                      (13, 5, 6, 30),
-                                     (3, 0, 1, 5)),
+                                     (3, 0, 1, 5),
+                                     (24, 27)),
                          RPGSubclass('Light Mage',
                                      (9, 10, 7, 35),
-                                     (1, 2, 1, 6)),
+                                     (1, 2, 1, 6),
+                                     (28, 31)),
                          RPGSubclass('Dark Mage',
                                      (13, 6, 9, 30),
-                                     (3, 0, 1, 5)))),
+                                     (3, 0, 1, 5),
+                                     (32, 35)))),
                RPGClass('Priest', 'Armor and health focused class',
                         (RPGSubclass('Cleric',
                                      (7, 12, 7, 50),
-                                     (1, 2, 1, 7)),
+                                     (1, 2, 1, 7),
+                                     (36, 39)),
                          RPGSubclass('Paladin',
                                      (10, 13, 6, 40),
-                                     (2, 2, 1, 7)),
+                                     (2, 2, 1, 7),
+                                     (40, 43)),
                          RPGSubclass('Zealot',
                                      (14, 5, 8, 30),
-                                     (3, 0, 2, 5)))))
+                                     (3, 0, 2, 5),
+                                     (44, 47)))))
 
 # Races contains race name and their stat additions per level
 rpg_races = (RPGRace('Human', (0, 0, 0, 1)),
@@ -164,6 +186,7 @@ class Entity:
         player (bool): player controlled?
         lvl (int): level
         xp (int): xp
+        abilities (list): abilities
     """
 
     def __init__(self, name='Wolf', lvl=1):
@@ -182,6 +205,7 @@ class Entity:
         self.lvl = lvl
         self.xp = 0
         self.player = False
+        self.abilities = []
 
     def __str__(self):
         """Print entity info.
@@ -214,6 +238,15 @@ class Entity:
             print(f'{self.name} hit their attack against '
                   f'{enemy.name} for {damage} points')
             enemy.take_damage(damage)
+            # Triggers reaction abilities
+            for ability in enemy.abilities:
+                # Added two (()) because otherwise alignment doesn't work
+                if ((ability.activation == 'reaction' and
+                     ability.cooldown_cur == 0)):
+                    if ability.target_type == 'enemy(ies)':
+                        ability.activate([self])
+                    elif ability.target_type == 'self':
+                        ability.activate([enemy])
             self.add_xp(1)
         else:
             print(f'{self.name} missed their attack against {enemy.name}')
@@ -242,8 +275,9 @@ class Entity:
         if amt > self.max_hp - self.cur_hp:
             amt = self.max_hp - self.cur_hp
         self.cur_hp += amt
-        print(f'{self.name} heals by {int(amt)} hp'
-              f'and is now at {self.cur_hp}/{self.max_hp}')
+        if amt > 0:
+            print(f'{self.name} heals by {int(amt)} hp'
+                  f'and is now at {self.cur_hp}/{self.max_hp}')
 
     def level_up(self):
         """Level up."""
@@ -283,6 +317,7 @@ class RPGCharacter(Entity):
         player (bool): player controlled?
         items (dict): items equipt
         xp (int): xp had
+        abilities (list): abilities
     """
 
     def __init__(self):
@@ -307,6 +342,7 @@ class RPGCharacter(Entity):
         self.player = False
         self.lvl = 1
         self.xp = 0
+        self.abilities = []
         self.items = {'weapon': None, 'chest': None, 'head': None,
                       'hands': None, 'feet': None, 'accessory': None}
 
@@ -350,6 +386,7 @@ class PlayerCharacter(RPGCharacter):
         lvl (int): Level (1-5)
         player (bool): always True
         items (dict): items equipt
+        abilities (list): abilities list
     """
 
     def __init__(self):
@@ -365,6 +402,7 @@ class PlayerCharacter(RPGCharacter):
         self.player = True
         self.lvl = 1
         self.xp = 0
+        self.abilities = []
         self.items = {'weapon': None, 'chest': None, 'head': None,
                       'hands': None, 'feet': None, 'accessory': None}
 
@@ -395,15 +433,7 @@ class PlayerCharacter(RPGCharacter):
         print('Select Subclass\n'
               '-----------------')
         for subclass in self.rpg_class.subclasses:
-            print(f'{subclass.name}\n'
-                  f'     Atk: {subclass.stats[0]} '
-                  f'+ {subclass.stats_lvl[0]}/lvl\n'
-                  f'     AC: {subclass.stats[1]} '
-                  f'+ {subclass.stats_lvl[1]}/lvl\n'
-                  f'     Dge: {subclass.stats[2]} '
-                  f'+ {subclass.stats_lvl[2]}/lvl\n'
-                  f'     HP: {subclass.stats[3]} '
-                  f'+ {subclass.stats_lvl[3]}/lvl')
+            print(subclass)
         print('-----------------')
         # Pick option
         select_name = "None"
@@ -427,13 +457,12 @@ class PlayerCharacter(RPGCharacter):
         # Print options
         print('Select Race\n'
               '-----------------')
-        bonus_order = ('Atk', 'AC', 'Dge', 'HP')
         races = rpg_races
         for race in races:
             print(race.name)
             for i, stat in enumerate(race.stats):
                 if stat != 0:
-                    print(f'     {bonus_order[i]}: {stat}/lvl')
+                    print(f'     {items.bonus_order[i]}: {stat}/lvl')
         print('-----------------')
         # Pick option
         select_name = "None"

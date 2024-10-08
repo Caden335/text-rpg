@@ -5,7 +5,7 @@ Version: 10/4/2024
 """
 
 
-bonus_order = ('Atk', 'AC', 'Dge', 'HP')
+bonus_order = ('ATK', 'AC', 'DGE', 'HP', 'DMG', 'healing')
 
 
 class Item:
