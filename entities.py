@@ -15,19 +15,22 @@ class RPGClass:
 
     Attributes:
         name (str): name
+        tabs (str): any tabs needs for alignment
         desc (str): description
         subclasses (tuple): subclasses
     """
 
-    def __init__(self, name, desc, subclasses):
+    def __init__(self, name, tabs, desc, subclasses):
         """Create class.
 
         Args:
             name (str): name
+            tabs (str): any tabs needs for alignment
             desc (str): description
             subclasses (tuple): subclasses
         """
         self.name = name
+        self.tabs = tabs
         self.desc = desc
         self.subclasses = subclasses
 
@@ -37,7 +40,12 @@ class RPGClass:
         Returns:
             str: class for printing
         """
-        return self.name
+        result = f'-----------------\n{self.name}\n'
+        result += f'-----------------\n{self.desc}\n'
+        result += '-----------------\n'
+        for subclass in self.subclasses:
+            result += f'{subclass}\n'
+        return result
 
 
 class RPGSubclass:
@@ -113,7 +121,30 @@ class RPGRace:
 # Stores General Information
 # Classes contains class name, subclasses, and their stats
 # Stores info as (base, per/lvl)
-rpg_classes = (RPGClass('Warrior', 'Damage and armor focused class',
+# Descs come first so I can call them more easily
+rpg_class_descs = ('The Warrior is a fairly solid allrounder class.\n'
+                   'It has a good mixture of passive abilities and\n'
+                   'damaging abilities, and its subclasses have a good\n'
+                   'mixture of stats with relatively high health.',
+                   'The Rogue is more of a glass cannon. It has high\n'
+                   'damage and dodging abilities but lower armor and\n'
+                   'health. Their abilities focus on buffing themselves\n'
+                   'and dealing damage, with passives buffing dodge and atk.',
+                   'The Magus is an exceptional damage dealer and \n'
+                   'buffer. It has excellent buff and debuff skills,\n'
+                   'alongside great damage. This comes at a cost of getting\n'
+                   'hit more, though it has decent health to make up for\n'
+                   'this loss.',
+                   'The Priest can heal its teammates and damage its foes.\n'
+                   'It has high armor and health, alongside a variety\n'
+                   'of abilities that can deal damage and keep the party\n'
+                   'alive. By far the tankiest class as well, with high hp.',
+                   '(HARD) The Battlemage is a tough class to start with.\n'
+                   'It has low stats to begin with, and awful health, but\n'
+                   'it gains more per level than any other class and has\n'
+                   'excellent and versatile abilities focused on buffing\n'
+                   'itself and dealing damage quickly.')
+rpg_classes = (RPGClass('Warrior', '\t', rpg_class_descs[0],
                         (RPGSubclass('Knight',
                                      (8, 15, 5, 40),
                                      (2, 2, 1, 6),
@@ -126,7 +157,7 @@ rpg_classes = (RPGClass('Warrior', 'Damage and armor focused class',
                                      (12, 8, 10, 30),
                                      (2, 1, 2, 6),
                                      (8, 11)))),
-               RPGClass('Rogue', 'Damage and dodge focused class',
+               RPGClass('Rogue', '\t', rpg_class_descs[1],
                         (RPGSubclass('Thief',
                                      (10, 5, 15, 25),
                                      (2, 0, 3, 4),
@@ -139,7 +170,7 @@ rpg_classes = (RPGClass('Warrior', 'Damage and armor focused class',
                                      (12, 10, 8, 30),
                                      (2, 2, 2, 5),
                                      (20, 23)))),
-               RPGClass('Magus', 'Health and damage focused class',
+               RPGClass('Magus', '\t', rpg_class_descs[2],
                         (RPGSubclass('Elemental Caster',
                                      (13, 5, 6, 30),
                                      (3, 0, 1, 5),
@@ -152,7 +183,7 @@ rpg_classes = (RPGClass('Warrior', 'Damage and armor focused class',
                                      (13, 6, 9, 30),
                                      (3, 0, 1, 5),
                                      (32, 35)))),
-               RPGClass('Priest', 'Armor and health focused class',
+               RPGClass('Priest', '\t', rpg_class_descs[3],
                         (RPGSubclass('Cleric',
                                      (7, 12, 7, 50),
                                      (1, 2, 1, 7),
@@ -164,13 +195,27 @@ rpg_classes = (RPGClass('Warrior', 'Damage and armor focused class',
                          RPGSubclass('Zealot',
                                      (14, 5, 8, 30),
                                      (3, 0, 2, 5),
-                                     (44, 47)))))
+                                     (44, 47)))),
+               RPGClass('Battlemage', '', rpg_class_descs[4],
+                        (RPGSubclass('Arcane Knight',
+                                     (6, 10, 4, 25),
+                                     (3, 4, 2, 6),
+                                     (48, 51)),
+                         RPGSubclass('Runesmith',
+                                     (5, 13, 3, 28),
+                                     (2, 6, 2, 8),
+                                     (52, 55)),
+                         RPGSubclass('Spellblade',
+                                     (7, 6, 9, 22),
+                                     (3, 2, 4, 5),
+                                     (56, 59)))))
 
 # Races contains race name and their stat additions per level
-rpg_races = (RPGRace('Human', (0, 0, 0, 1)),
-             RPGRace('Elf', (0, 0, 2, -1)),
-             RPGRace('Dwarf', (0, 2, -1, 0)),
-             RPGRace('Orc', (0, -1, 0, 2)))
+rpg_races = (RPGRace('Edain', (1, 1, 1, 1)),
+             RPGRace('Sindar', (1, -1, 4, 0)),
+             RPGRace('Noldor', (2, 2, 0, 0)),
+             RPGRace('Dwarf', (0, 3, -1, 2)),
+             RPGRace('Orc', (2, -1, 0, 3)))
 
 
 class Entity:
@@ -229,7 +274,7 @@ class Entity:
         # Hit chance, base chance 50% + 5% for each dif in atk and dge
         hit_chance = (self.atk - enemy.dge) / 20 + .5
         # Base damage is atk minus half enemy armor. Can't be below 0
-        damage = max(0, (self.atk - (self.ac / 2)))
+        damage = max(0, (self.atk - (enemy.ac / 2)))
         # Damage range is 80% - 120% of base damage
         damage *= ((random.randint(3, 7) / 10) + 0.5)
         # Truncates to 1 decimal just in case math adds unecessary digits
@@ -244,9 +289,9 @@ class Entity:
                 if ((ability.activation == 'reaction' and
                      ability.cooldown_cur == 0)):
                     if ability.target_type == 'enemy(ies)':
-                        ability.activate([self])
+                        ability.activate(self, [enemy])
                     elif ability.target_type == 'self':
-                        ability.activate([enemy])
+                        ability.activate(self, [self])
             self.add_xp(1)
         else:
             print(f'{self.name} missed their attack against {enemy.name}')
@@ -294,7 +339,8 @@ class Entity:
             amt (int): amt of xp gained
         """
         if self.player:
-            self.xp += amt
+            if self.lvl < 5:
+                self.xp += amt
             if self.xp >= self.lvl * 10:
                 self.xp -= self.lvl * 10
                 self.level_up()
@@ -352,12 +398,23 @@ class RPGCharacter(Entity):
         Returns:
             str: Character info
         """
-        result = f'{self.name}\n     {self.subclass.name} '
-        result += f'({self.rpg_class.name}) {self.lvl}\n'
-        result += f'     Race: {self.race.name}\n     ATK: {self.atk}\n'
-        result += f'     DEF: {self.ac + self.dge} ({self.ac} '
-        result += f'AC + {self.dge} DGE)\n'
-        result += f'     HP: {int(self.cur_hp)}/{self.max_hp}'
+        result = f'{self.name} ({self.subclass.name} '
+        result += f'{self.rpg_class.name} {self.lvl})\n'
+        result += f'     Race: {self.race.name}\n     Stats:\n'
+        result += f'          ATK: {self.atk}\n'
+        result += f'          AC: {self.ac}\n'
+        result += f'          DGE: {self.dge}\n'
+        result += f'          HP: {int(self.cur_hp)}/{self.max_hp}'
+        if len(self.abilities) > 0:
+            result += '\n     Abilities:'
+            for ability in self.abilities:
+                result += f'\n          {ability}'
+        if any(item is not None for item in self.items):
+            result += '\n     Items:'
+            for slot, item in self.items.items():
+                if item is not None:
+                    result += f'\n          {slot.capitalize()}:'
+                    result += f' {item.one_line()}'
         return result
 
     def level_up(self):
@@ -367,7 +424,17 @@ class RPGCharacter(Entity):
         self.ac += self.subclass.stats_lvl[1] + self.race.stats[1]
         self.dge += self.subclass.stats_lvl[2] + self.race.stats[2]
         self.max_hp += self.subclass.stats_lvl[3] + self.race.stats[3]
+        self.cur_hp += self.subclass.stats_lvl[3] + self.race.stats[3]
         print(f'{self.name} leveled up to level {self.lvl}')
+        print('-----------------------------')
+        # Add new ability
+        new_ability = self.subclass.abilities[self.lvl - 2]
+        print(f'{self.name} gained the ability {new_ability.name}')
+        self.abilities.append(new_ability)
+        # Activate passive abilities
+        if new_ability.activation == 'passive':
+            new_ability.activate(self, [self])
+        print()
 
 
 class PlayerCharacter(RPGCharacter):
@@ -412,7 +479,10 @@ class PlayerCharacter(RPGCharacter):
         print('Select Class\n'
               '-----------------')
         for rpg_class in rpg_classes:
-            print(f'{rpg_class.name} -\t{rpg_class.desc}')
+            print(rpg_class.name)
+            print('-----------------')
+            print(rpg_class.desc)
+            print()
         print('-----------------')
         # Pick option
         select = "None"

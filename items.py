@@ -147,11 +147,11 @@ all_items = (Item('Ring of Health', 'accessory', 'common', (0, 0, 0, 2)),
              Item('Gram', 'weapon', 'masterwork', (8, 0, 0, 0)),
              Item('Kopis and Aegis', 'weapon', 'masterwork', (4, 4, 0, 0)),
              Item('Axe', 'weapon', 'common', (2, 0, 0, 0)),  # Axes
-             Item('Greataxe', 'weapon', 'well-made', (4, 0, 0, 0)),
+             Item('Greataxe', 'weapon', 'well-made', (6, -2, 0, 0)),
              Item('Khopesh and Shield', 'weapon', 'well-made', (2, 2, 0, 0)),
-             Item('Battleaxe', 'weapon', 'expert', (6, 0, 0, 0)),
+             Item('Battleaxe', 'weapon', 'expert', (10, -4, 0, 0)),
              Item('Axe and Shield', 'weapon', 'expert', (4, 2, 0, 0)),
-             Item('Labrys', 'weapon', 'masterwork', (8, 0, 0, 0)),
+             Item('Labrys', 'weapon', 'masterwork', (14, -6, 0, 0)),
              Item('Axe and Roundshield', 'weapon', 'masterwork', (4, 4, 0, 0)),
              Item('Hunting Bow', 'weapon', 'common', (2, 0, 0, 0)),  # Bows
              Item('Shortbow', 'weapon', 'well-made', (4, 0, 0, 0)),
@@ -170,9 +170,9 @@ all_items = (Item('Ring of Health', 'accessory', 'common', (0, 0, 0, 2)),
              Item('Chainmail', 'chest', 'well-made', (0, 8, -4, 0)),
              Item('Scale Mail', 'chest', 'expert', (0, 6, 0, 0)),  # T6C
              Item('Breastplate', 'chest', 'expert', (0, 8, -2, 0)),
-             Item('Half-Plate', 'chest', 'expert', (0, 20, -4, 0)),
-             Item('Plate Armor', 'chest', 'masterwork', (0, 6, -4, 0)),  # T8C
-             Item('Ring Mail', 'chest', 'masterwork', (0, 20, -2, 0)),
+             Item('Half-Plate', 'chest', 'expert', (0, 10, -4, 0)),
+             Item('Plate Armor', 'chest', 'masterwork', (0, 12, -4, 0)),  # T8C
+             Item('Ring Mail', 'chest', 'masterwork', (0, 10, -2, 0)),
              Item('Splint Armor', 'chest', 'masterwork', (0, 8, 0, 0)),
              Item('Sandals', 'feet', 'common', (0, 0, 2, 0)),  # Feet
              Item('Shoes', 'feet', 'common', (0, 0, 2, 0)),
@@ -180,7 +180,7 @@ all_items = (Item('Ring of Health', 'accessory', 'common', (0, 0, 0, 2)),
              Item('Cobbled Shoes', 'feet', 'common', (0, 0, 2, 0)),
              Item('Leather Boots', 'feet', 'well-made', (0, 0, 4, 0)),
              Item('Greaves', 'feet', 'expert', (0, 0, 6, 0)),
-             Item('Plate Books', 'feet', 'masterwork', (0, 0, 8, 0)),
+             Item('Plate Boots', 'feet', 'masterwork', (0, 0, 8, 0)),
              Item('Gloves', 'hands', 'common', (0, 2, 0, 0)),  # Hands
              Item('Bracelets', 'hands', 'common', (2, 0, 0, 0)),
              Item('Bracers', 'hands', 'well-made', (2, 2, 0, 0)),

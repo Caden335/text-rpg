@@ -52,6 +52,7 @@ class Ability:
         self.target_type = target_type
         self.targets_cur = []
         self.length = length
+        self.length_cur = 0
         self.cooldown = cooldown
         self.cooldown_cur = 0
         self.active = False
@@ -85,17 +86,20 @@ class Ability:
             result = result[:-2]
         return result
 
-    def activate(self, targets):
+    def activate(self, user, targets):
         """Activate ability.
 
         Args:
+            user (Entity): ability user
             targets (List): list of targets
         """
         # Basic initialization
         self.targets_cur = targets
-        self.length_cur = self.length
+        self.length_cur = self.length + 1
         self.active = True
         # Apply effects
+        if self.activation != 'passive':
+            print(f'{user.name} used the ability {self.name}')
         for target in targets:
             for i in range(len(self.effects) - 2):
                 if self.effects[i] != 0:
@@ -111,31 +115,48 @@ class Ability:
             target.cur_hp += self.effects[3]
             target.max_hp += self.effects[3]
             if self.effects[4] != 0:
-                target.take_damage(self.effect[4])
+                print(f'{self.name} dealt {self.effects[4]} '
+                      f'damage to {target.name}')
+                target.take_damage(self.effects[4])
             if self.effects[5] != 0:
                 target.heal(self.effects[5])
+        if self.activation == 'instant':
+            self.deactivate()
 
     def deactivate(self):
         """Deactivate ability."""
         self.active = False
         self.cooldown_cur = self.cooldown
         for target in self.targets_cur:
-            for i in range(len(self.effects) - 2):
-                if self.effects[i] != 0:
-                    if self.effects[i] > 0:
-                        print(f'The buff on {target.name}\'s '
-                              f'{items.bonus_order[i]} '
-                              f'for {self.effects[i]} wore off')
-                    else:
-                        print(f'The debuff of {target.name}\'s '
-                              f'{items.bonus_order[i]} '
-                              f'for {self.effects[i]} wore off')
+            if self.activation == 'buff':
+                for i in range(len(self.effects) - 2):
+                    if self.effects[i] != 0:
+                        if self.effects[i] > 0:
+                            print(f'The buff on {target.name}\'s '
+                                  f'{items.bonus_order[i]} '
+                                  f'for {self.effects[i]} wore off')
+                        else:
+                            print(f'The debuff of {target.name}\'s '
+                                  f'{items.bonus_order[i]} '
+                                  f'for {self.effects[i]} wore off')
             target.atk -= self.effects[0]
             target.ac -= self.effects[1]
             target.dge -= self.effects[2]
             target.take_damage(self.effects[3])
             target.max_hp -= self.effects[3]
         self.targets_cur = []
+
+    def is_usable(self):
+        """Test if the ability is usable in a turn.
+
+        Returns:
+            bool: Returns if useable on turn
+        """
+        usable = (not self.active and
+                  self.cooldown_cur == 0 and
+                  (self.activation == 'instant' or
+                   self.activation == 'buff'))
+        return usable
 
 
 all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
@@ -146,7 +167,7 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                          1, 'enemy(ies)', 0, 3),
                  Ability('Unyielding', 'passive', (0, 0, 0, 10, 0, 0),
                          1, 'self', 0, 0),
-                 # Berserker abilities
+                 # Berserker Abilities
                  Ability('Reckless Attack', 'instant', (0, 0, 0, 0, 8, 0),
                          1, 'enemy(ies)', 0, 3),
                  Ability('Raging', 'passive', (2, 1, 0, 0, 0, 0),
@@ -155,7 +176,7 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                          5, 'enemy(ies)', 0, 5),
                  Ability('Blood Fury', 'passive', (5, 0, 0, 0, 0, 0),
                          1, 'self', 0, 0),
-                 # Ranger abilities
+                 # Ranger Abilities
                  Ability('Volley', 'instant', (0, 0, 0, 0, 5, 0),
                          2, 'enemy(ies)', 0, 3),
                  Ability('Quick Reflexes', 'passive', (0, 0, 2, 0, 0, 0),
@@ -164,7 +185,7 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                          1, 'enemy(ies)', 0, 3),
                  Ability('Flexible Fighter', 'passive', (3, 0, 2, 0, 0, 0),
                          1, 'self', 0, 0),
-                 # Thief abilities
+                 # Thief Abilities
                  Ability('Smoke Bomb', 'buff', (-2, 0, -2, 0, 0, 0),
                          4, 'enemy(ies)', 3, 8),
                  Ability('Elusive', 'passive', (0, 0, 2, 0, 0, 0),
@@ -173,7 +194,7 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                          1, 'self', 1, 5),
                  Ability('Shadowstep', 'passive', (0, 0, 5, 0, 0, 0),
                          1, 'self', 0, 0),
-                 # Assassin abilities
+                 # Assassin Abilities
                  Ability('Precision Strike', 'instant', (0, 0, 0, 0, 10, 0),
                          1, 'enemy(ies)', 0, 2),
                  Ability('Nimble Movement', 'passive', (0, 0, 2, 0, 0, 0),
@@ -182,7 +203,7 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                          1, 'enemy(ies)', 0, 5),
                  Ability('Lethal Precision', 'passive', (5, 0, 0, 0, 0, 0),
                          1, 'self', 0, 0),
-                 # Duelist abilities
+                 # Duelist Abilities
                  Ability('Riposte', 'reaction', (0, 0, 0, 0, 5, 0),
                          1, 'enemy(ies)', 0, 0),
                  Ability('Offensive Stance', 'buff', (4, 0, 0, 0, 0, 0),
@@ -191,7 +212,7 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                          1, 'self', 2, 4),
                  Ability('Master Duelist', 'passive', (4, 0, 2, 0, 0, 0),
                          1, 'self', 0, 0),
-                 # Elemental Caster abilities
+                 # Elemental Caster Abilities
                  Ability('Flame Burst', 'instant', (0, 0, 0, 0, 6, 0),
                          1, 'enemy(ies)', 0, 3),
                  Ability('Air Steps', 'passive', (0, 0, 2, 0, 0, 0),
@@ -200,7 +221,7 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                          1, 'teammate(s)', 2, 3),
                  Ability('Stone Form', 'passive', (0, 0, 0, 15, 0, 0),
                          1, 'self', 0, 0),
-                 # Light Mage abilities
+                 # Light Mage Abilities
                  Ability('Radiant Burst', 'instant', (0, 0, 0, 0, 5, 0),
                          3, 'enemy(ies)', 0, 4),
                  Ability('Blinding Light', 'buff', (-2, 0, -2, 0, 0, 0),
@@ -209,16 +230,16 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                          3, 'teammate(s)', 3, 6),
                  Ability('Inner Strength', 'passive', (5, 0, 0, 5, 0, 0),
                          1, 'self', 0, 0),
-                 # Dark Mage abilities
+                 # Dark Mage Abilities
                  Ability('Withering', 'buff', (-2, 0, -2, 0, 0, 0),
                          3, 'enemy(ies)', 2, 4),
                  Ability('Shadow Veil', 'passive', (0, 0, 3, 0, 0, 0),
                          1, 'self', 0, 0),
                  Ability('Darkened Armor', 'buff', (0, 4, 0, 4, 0, 0),
                          1, 'self', 3, 3),
-                 Ability('Curse of Darkness', 'buff', (-10, 0, 0, 0, 0, 0),
+                 Ability('Curse of Darkness', 'buff', (-13, 0, 0, 0, 0, 0),
                          5, 'enemy(ies)', 1, 6),
-                 # Cleric abilities
+                 # Cleric Abilities
                  Ability('Purify', 'buff', (1, 1, 1, 3, 0, 0),
                          3, 'teammate(s)', 2, 5),
                  Ability('Divine Protection', 'passive', (0, 3, 0, 0, 0, 0),
@@ -227,16 +248,16 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                          5, 'teammate(s)', 0, 3),
                  Ability('Shine', 'instant', (0, 0, 0, 0, 10, 0),
                          3, 'enemy(ies)', 0, 4),
-                 # Paladin abilities
+                 # Paladin Abilities
                  Ability('Smite', 'instant', (0, 0, 0, 0, 8, 0),
                          1, 'enemy(ies)', 0, 3),
                  Ability('Righteousness', 'passive', (2, 2, 0, 0, 0, 0),
                          1, 'self', 0, 0),
                  Ability('Divine Shield', 'buff', (0, 15, 0, 0, 0, 0),
                          1, 'teammate(s)', 1, 4),
-                 Ability('Holy Chosen', 'passive', (0, 6, 0, 0, 10, 0),
+                 Ability('Holy Chosen', 'passive', (0, 6, 0, 8, 0, 0),
                          1, 'self', 0, 0),
-                 # Zealot abilities
+                 # Zealot Abilities
                  Ability('Faithful Fury', 'buff', (6, 0, 0, 0, 0, 0),
                          1, 'self', 2, 5),
                  Ability('Zealous Endurance', 'passive', (0, 0, 0, 8, 0, 0),
@@ -244,4 +265,31 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                  Ability('Holy Wrath', 'instant', (0, 0, 0, 0, 20, 0),
                          1, 'enemy(ies)', 0, 4),
                  Ability('Unbreakable Will', 'passive', (0, 5, 5, 0, 0, 0),
-                         1, 'self', 0, 0))
+                         1, 'self', 0, 0),
+                 # Arcane Knight Abilities
+                 Ability('Arcane Slash', 'instant', (0, 0, 0, 0, 6, 0),
+                         1, 'enemy(ies)', 0, 2),
+                 Ability('Mana Shield', 'buff', (0, 5, 0, 0, 0, 0),
+                         1, 'teammate(s)', 3, 5),
+                 Ability('Arcane Barrage', 'instant', (0, 0, 0, 0, 10, 0),
+                         1, 'teammate(s)', 0, 3),
+                 Ability('Arcane Resilience', 'passive', (0, 4, 0, 15, 0, 0),
+                         1, 'self', 0, 0),
+                 # Runesmith Abilities
+                 Ability('Rune of Flame', 'instant', (0, 0, 0, 0, 10, 0),
+                         1, 'enemy(ies)', 0, 4),
+                 Ability('Rune of Earth', 'buff', (0, 3, 0, 6, 0, 0),
+                         1, 'self', 3, 5),
+                 Ability('Rune of Wind', 'buff', (6, 0, 0, 0, 0, 0),
+                         1, 'self', 2, 4),
+                 Ability('Rune Explosion', 'instant', (0, 0, 0, 0, 12, 0),
+                         7, 'enemy(ies)', 0, 6),
+                 # Spellblade Abilities
+                 Ability('Arcane Blade', 'instant', (0, 0, 0, 0, 8, 0),
+                         1, 'enemy(ies)', 0, 3),
+                 Ability('Arcane Agility', 'buff', (2, 0, 4, 0, 0, 0),
+                         1, 'self', 2, 4),
+                 Ability('Swift Strikes', 'instant', (0, 0, 0, 0, 10, 0),
+                         2, 'enemy(ies)', 0, 4),
+                 Ability('Spellblade Precision', 'passive', (8, 0, 0, 0, 0, 0),
+                         1, 'self', 0, 0),)

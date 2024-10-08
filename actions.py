@@ -51,9 +51,10 @@ def global_turn(player, day):
             item.wealth = int(item.wealth * ((random.random() / 10) + 0.95))
     # Add new enemy parties, level scaling every 10 days
     type = random.randint(0, len(rpg_lists.generic_enemy_types) - 1)
+    enemy_lvl = math.ceil(day / 10)
     if random.random() > 0.7:
         map_items.MonsterBand(rpg_lists.generic_enemy_types[type],
-                              min(5, math.ceil(day / 10)), random.randint(2, 5))
+                              min(5, enemy_lvl), random.randint(2, 5))
     # Player goes
     select_options(player)
     # Increment day
@@ -76,12 +77,19 @@ def select_options(player):
         print('-----------------\nPlayer Actions\n'
               '-----------------')
         for action in actions:
-            print(f'{action.capitalize()}')
+            print(f'{action.title()}')
         print('-----------------')
         # Pick action
         your_choice = "None"
         while your_choice.lower() not in actions:
             your_choice = input('Select Action: ')
+            if your_choice == 'CHEAT':
+                print('CHEAT DONE')
+                for member in player.members:
+                    for _i in range(5 - member.lvl):
+                        member.level_up()
+                player.gold += 5000
+                player.inv += items.all_items
             if your_choice.lower() not in actions:
                 print('Invalid selection, try again')
         # What happens
@@ -101,7 +109,7 @@ def select_options(player):
             break
         elif your_choice.lower() == 'new move':
             back = new_move(player)
-            if not back.lower() == 'back':
+            if not back == 'back':
                 can_move = False
         elif your_choice.lower() == 'settlement':
             settlement_actions(player)
@@ -152,8 +160,8 @@ def new_move(player):
     your_choice = 'None'
     while not any(your_choice == i for i in range(len(map_items.map_items))):
         your_choice = int(input('Where do you want to go? (#) '))
-        if your_choice == 'Back':
-            return 'Back'
+        if str(your_choice).lower() == 'back' or str(your_choice).lower() == 'finished':
+            return 'back'
         if not any(your_choice == i for i in range(len(map_items.map_items))):
             print('Invalid selection, try again')
         else:
@@ -183,7 +191,7 @@ def settlement_actions(player):
     select = 'None'
     while select.lower() not in actions:
         select = input('What would you like to do? ')
-        if select.lower() == 'back':
+        if select.lower() == 'back' or select.lower() == 'finished':
             return
         elif select.lower() not in actions:
             print('Invalid option, try again')
@@ -206,7 +214,7 @@ def settlement_shop(player, settlement):
     print('-----------------')
     print('What do you want to buy?')
     select = None
-    while select != 'finished':
+    while select.lower() != 'finished' and select.lower() != 'back':
         select = input('Type item name or '
                        'type "finished" to end: ')
         if any(select == item.name for item in settlement.shop):
@@ -248,7 +256,7 @@ def pick_team(player, settlement):
     while len(player.members) < 5:
         index_val = input('Enter number for character '
                           'or type "finished" to end: ')
-        if index_val.lower() == 'finished':
+        if index_val.lower() == 'finished' or index_val.lower() == 'back':
             break
         if index_val.isdigit():
             index_val = int(index_val) - 1
@@ -293,13 +301,12 @@ def create_encounter(team1, team2):
     turn_count = 1
     while len(team1.members) > 0 and len(team2.members) > 0:
         print(f'-----------------\nTurn {turn_count}\n-----------------')
-        dead = take_turn(team1.members, team2.members)
-        team2.members = [char for i, char in
-                         enumerate(team2.members) if i not in dead]
+        take_turn(team1.members, team2.members)
+        team2.members = [char for char in team2.members if char.cur_hp > 0]
         if len(team2.members) > 0:
-            dead = take_turn(team2.members, team1.members)
-            team1.members = [char for i, char in
-                             enumerate(team1.members) if i not in dead]
+            take_turn(team2.members, team1.members)
+            team1.members = [char for char in team1.members
+                             if char.cur_hp > 0]
         turn_count += 1
     # Ending
     print('----------------- Encounter Over -----------------')
@@ -328,36 +335,111 @@ def take_turn(team, enemy_team):
     Args:
         team (list): The team going
         enemy_team (list): The team being targetted
-
-    Returns:
-        list: Any dead enemies, if any
     """
-    dead_enemies = []
     for char in team:
-        possible_targets = list(range(len(enemy_team)))
+        # Check is player controlled or not
+        for abil in char.abilities:
+            if abil.length_cur > 0:
+                abil.length_cur -= 1
+                if abil.length_cur == 0:
+                    abil.deactivate()
+            if abil.cooldown_cur > 0:
+                abil.cooldown_cur -= 1
         if char.player:
-            print(f'Who do you want {char.name} to target?')
-            for i, enemy in enumerate(enemy_team):
-                print(f'{i + 1}. {enemy.name}')
-            target = -1
-            while target not in possible_targets:
-                target = int(input()) - 1
-                if target in possible_targets:
-                    char.attack(enemy_team[target])
-                    if enemy_team[target].cur_hp <= 0:
-                        dead_enemies.append(target)
+            act_type = 'None'
+            # Potential actions on turn
+            actions = ['ability', 'attack']
+            # Get input, run actions
+            while act_type not in actions:
+                act_type = input('Do you want to use an ability or attack? ')
+                # Attack enemies
+                if act_type == 'attack':
+                    print('-----------------')
+                    print(f'Who do you want {char.name} to target?')
+                    for i, enemy in enumerate(enemy_team):
+                        print(f'{i + 1}. {enemy.name}')
+                    target = -1
+                    while target not in range(len(enemy_team)):
+                        target = int(input()) - 1
+                        if target in range(len(enemy_team)):
+                            char.attack(enemy_team[target])
+                        else:
+                            print('Invalid target, please try again')
+                # Use ability, if you have usable ability
+                elif (act_type == 'ability' and len(char.abilities) > 0 and
+                      any(ability.is_usable() for ability in char.abilities)):
+                    pick_use_ability(char, team, enemy_team)
+                # Use ability, but none are available
+                elif (act_type == 'ability' and
+                      len(char.ability) == 0 or
+                      not any(ability.is_usable()for
+                              ability in char.abilities)):
+                    print('You have no usable abilities right now')
                 else:
-                    print('Invalid target, please try again')
+                    print('Invalid selection, try again')
             print()
-        else:
+        else:  # AI actions
             target = random.randint(0, len(enemy_team) - 1)
             char.attack(enemy_team[target])
-            if enemy_team[target].cur_hp <= 0:
-                dead_enemies.append(target)
-        if dead_enemies == possible_targets:
-            return dead_enemies
     print()
-    return dead_enemies
+
+
+def pick_use_ability(char, team, enemy_team):
+    """One team takes its turn.
+
+    Args:
+        char (Entity): entity using their turn
+        team (list): The team going
+        enemy_team (list): The team being targetted
+    """
+    # Print abilities
+    print('-----------------')
+    for ability in char.abilities:
+        if ability.is_usable():
+            print(ability)
+    print('-----------------')
+    # Select ability
+    abil_select = 'None'
+    while not any(abil_select.lower() == abil.name.lower()
+                  for abil in char.abilities):
+        abil_select = input('Which ability do '
+                            'you want to use? ')
+        if not any(abil_select.lower() == abil.name.lower()
+                   for abil in char.abilities):
+            print('Invalid ability, try again')
+        elif any(abil_select.lower() == abil.name.lower()
+                 and not abil.is_usable()
+                 for abil in char.abilities):
+            print('You can\'t use that ability right now')
+            abil_select = 'None'
+        else:
+            abil = next(abil for abil in char.abilities
+                        if abil.name.lower() == abil_select.lower())
+            if abil.target_type == 'self':
+                abil.activate(char, [char])
+            else:
+                print(f'Who do you want {abil.name} to target?')
+                your_targets = []
+                your_targets_i = []
+                if abil.target_type == 'enemy(ies)':
+                    abil_targets = enemy_team
+                else:
+                    abil_targets = team
+                for i, targ in enumerate(abil_targets):
+                    print(f'{i + 1}. {targ.name}')
+                targ_len = min(len(abil_targets), abil.target_count)
+                while len(your_targets) < targ_len:
+                    new_targ = int(input('Who do you want to target?')) - 1
+                    if ((new_targ in range(len(abil_targets)) and
+                         new_targ not in your_targets_i)):
+                        your_targets.append(abil_targets[new_targ])
+                        your_targets_i.append(new_targ)
+                        print(f'({len(your_targets)}/{targ_len})')
+                    elif new_targ not in range(len(abil_targets)):
+                        print('Invalid target, try again')
+                    elif new_targ in your_targets_i:
+                        print('Already targeted, try again')
+                abil.activate(char, your_targets)
 
 
 def party_view(player):
@@ -377,18 +459,22 @@ def party_view(player):
     # Char item actions
     print('-----------------\nItem Actions\n-----------------')
     person = 'None'
-    while not any(person == char.name for char in player.members):
+    while not any(person.lower() == char.name.lower()
+                  for char in player.members):
         person = input('Select character: ')
-        if person == 'finished':
+        if person == 'finished' or person == 'back':
             return
-        if not any(person == char.name for char in player.members):
+        if not any(person.lower() == char.name.lower()
+                   for char in player.members):
             print('Invalid option, try again')
-    person = next(char for char in player.members if char.name == person)
+    person = next(char for char in player.members
+                  if char.name.lower() == person.lower())
     select = 'None'
-    while select.lower() != 'finished':  # Keeps running while not finished
+    # Keeps running while not finished
+    while select.lower() != 'finished' and select.lower() != 'back':
         while select.lower() != 'equip' and select.lower() != 'unequip':
             select = input('Equip or Unequip? ')
-            if select == 'finished':
+            if select.lower() == 'finished' or select.lower() == 'back':
                 return
         # Unequip objects
         if select.lower() == 'unequip':
@@ -397,28 +483,31 @@ def party_view(player):
                 if val is not None:
                     print(f'     {key.capitalize()}: {val.name}')
             while not any(person.items[val] is not None and
-                          select == person.items[val].name
+                          select.lower() == person.items[val].name.lower()
                           for val in person.items):
                 select = input('Which item do you want to unequip? ')
-                if select.lower() == 'finished':
+                if select.lower() == 'finished' or select.lower() == 'back':
                     return
                 if not any(person.items[val] is not None and
-                           select == person.items[val].name
+                           select.lower() == person.items[val].name.lower()
                            for val in person.items):
                     print('Invalid item, try again')
             item = next(person.items[val] for val in person.items
                         if person.items[val] is not None and
-                        person.items[val].name == select)
+                        person.items[val].name.lower() == select.lower())
             item.unequip()
             player.inv.append(item)
         # Equip objects
         elif select.lower() == 'equip':
-            while not any(select == item.name for item in player.inv):
+            while not any(select.lower() == item.name.lower()
+                          for item in player.inv):
                 select = input('Which item do you want to equip? ')
-                if select.lower() == 'finished':
+                if select.lower() == 'finished' or select.lower() == 'back':
                     return
-                if not any(select == item.name for item in player.inv):
+                if not any(select.lower() == item.name.lower()
+                           for item in player.inv):
                     print('Invalid item, try again')
-            item = next(item for item in player.inv if item.name == select)
+            item = next(item for item in player.inv
+                        if item.name.lower() == select.lower())
             item.equip(person)
             player.inv.remove(item)
