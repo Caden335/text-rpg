@@ -321,7 +321,7 @@ class Entity:
             amt = self.max_hp - self.cur_hp
         self.cur_hp += amt
         if amt > 0:
-            print(f'{self.name} heals by {int(amt)} hp'
+            print(f'{self.name} heals by {int(amt)} hp '
                   f'and is now at {self.cur_hp}/{self.max_hp}')
 
     def level_up(self):
@@ -400,6 +400,7 @@ class RPGCharacter(Entity):
         """
         result = f'{self.name} ({self.subclass.name} '
         result += f'{self.rpg_class.name} {self.lvl})\n'
+        result += f'     Experience: {self.xp}/{self.lvl * 10}\n'
         result += f'     Race: {self.race.name}\n     Stats:\n'
         result += f'          ATK: {self.atk}\n'
         result += f'          AC: {self.ac}\n'

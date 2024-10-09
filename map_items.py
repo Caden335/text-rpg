@@ -267,8 +267,17 @@ class Band(MapItem):
             dist_x = -self.x
             dist_y = -self.y
             total_dist = math.sqrt(dist_x**2 + dist_y**2)
+            ns = 'S'
+            ew = 'W'
             if total_dist <= self.movement:
+                if dist_y > 0:
+                    ns = 'N'
+                if dist_x > 0:
+                    ew = 'E'
                 self.move(dist_x, dist_y)
+                print(f'{self.name} has moved {dist_y} {ns}'
+                      f'and {dist_x} {ew} to you '
+                      f'and is now about to attack you')
             else:
                 move_fraction = self.movement / total_dist
                 move_x = int(dist_x * move_fraction)
@@ -280,8 +289,6 @@ class Band(MapItem):
                     move_x = int(move_x * scale_factor)
                     move_y = int(move_y * scale_factor)
                 self.move(move_x, move_y)
-                ns = 'S'
-                ew = 'W'
                 if move_y > 0:
                     ns = 'N'
                 if move_x > 0:

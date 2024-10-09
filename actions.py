@@ -164,7 +164,7 @@ def new_move(player):
             map_items.print_map_item(loc)
     your_choice = 'None'
     while not any(your_choice == i for i in range(len(map_items.map_items))):
-        your_choice = int(input('Where do you want to go? (#) '))
+        your_choice = int(input('Where do you want to go? (#) ') or 0)
         if not string_not_back(str(your_choice)):
             return 'back'
         if not any(your_choice == i for i in range(len(map_items.map_items))):
@@ -314,7 +314,19 @@ def create_encounter(team1, team2):
                              if char.cur_hp > 0]
         turn_count += 1
     # Ending
-    print('----------------- Encounter Over -----------------')
+    for char in team1.members:
+        for abil in char.abilities:
+            abil.length_cur = 0
+            if abil.activation == 'buff' or abil.activation == 'reaction':
+                abil.deactivate()
+            abil.cooldown_cur = 0
+    for char in team2.members:
+        for abil in char.abilities:
+            abil.length_cur = 0
+            if abil.activation == 'buff' or abil.activation == 'reaction':
+                abil.deactivate()
+            abil.cooldown_cur = 0
+    print('\n----------------- Encounter Over -----------------')
     if len(team1.members) > 0:
         print('-----------------\nWinners - Team 1\n-----------------')
         team1.gold += team2.gold
@@ -325,12 +337,6 @@ def create_encounter(team1, team2):
         for item in team2.inv:
             team1.inv.append(item)
             print('   ', item.one_line())
-        for char in team1.members:
-            for abil in char.abilities:
-                abil.length_cur = 0
-                if abil.activation == 'buff' or abil.activation == 'reaction':
-                    abil.deactivate()
-                abil.cooldown_cur = 0
         team1.leader = team1.members[0]
         print()
     else:
@@ -367,17 +373,19 @@ def take_turn(team, enemy_team):
             # Potential actions on turn
             actions = ['ability', 'attack']
             # Get input, run actions
+            print(f'{char.name}\'s Turn')
+            print('-----------------')
             while act_type not in actions:
                 act_type = input('Do you want to use an ability or attack? ')
                 # Attack enemies
                 if act_type == 'attack':
                     print('-----------------')
-                    print(f'Who do you want {char.name} to target?')
+                    print(f'Who do you want {char.name} to target? ')
                     for i, enemy in enumerate(enemy_team):
                         print(f'{i + 1}. {enemy.name}')
                     target = -1
                     while target not in range(len(enemy_team)):
-                        target = int(input()) - 1
+                        target = int(input() or 1) - 1
                         if target in range(len(enemy_team)):
                             char.attack(enemy_team[target])
                         else:
@@ -388,7 +396,7 @@ def take_turn(team, enemy_team):
                     pick_use_ability(char, team, enemy_team)
                 # Use ability, but none are available
                 elif (act_type == 'ability' and
-                      (len(char.ability) == 0 or
+                      (len(char.abilities) == 0 or
                        not any(ability.is_usable() for
                                ability in char.abilities))):
                     print('You have no usable abilities right now')
@@ -398,6 +406,8 @@ def take_turn(team, enemy_team):
         else:  # AI actions
             target = random.randint(0, len(enemy_team) - 1)
             char.attack(enemy_team[target])
+        if not any(enemy.cur_hp > 0 for enemy in enemy_team):
+            return
     print()
 
 
@@ -435,7 +445,7 @@ def pick_use_ability(char, team, enemy_team):
             if abil.target_type == 'self':
                 abil.activate(char, [char])
             else:
-                print(f'Who do you want {abil.name} to target?')
+                print(f'Who do you want {abil.name} to target? ')
                 your_targets = []
                 your_targets_i = []
                 if abil.target_type == 'enemy(ies)':
@@ -446,15 +456,15 @@ def pick_use_ability(char, team, enemy_team):
                     print(f'{i + 1}. {targ.name}')
                 targ_len = min(len(abil_targets), abil.target_count)
                 while len(your_targets) < targ_len:
-                    new_targ = int(input('Who do you want to target?')) - 1
-                    if ((new_targ in range(len(abil_targets)) and
-                         new_targ not in your_targets_i)):
-                        your_targets.append(abil_targets[new_targ])
-                        your_targets_i.append(new_targ)
+                    new_tar = int(input('Who do you want to target?') or 1) - 1
+                    if ((new_tar in range(len(abil_targets)) and
+                         new_tar not in your_targets_i)):
+                        your_targets.append(abil_targets[new_tar])
+                        your_targets_i.append(new_tar)
                         print(f'({len(your_targets)}/{targ_len})')
-                    elif new_targ not in range(len(abil_targets)):
+                    elif new_tar not in range(len(abil_targets)):
                         print('Invalid target, try again')
-                    elif new_targ in your_targets_i:
+                    elif new_tar in your_targets_i:
                         print('Already targeted, try again')
                 abil.activate(char, your_targets)
 
