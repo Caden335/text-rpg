@@ -95,7 +95,10 @@ class Ability:
         """
         # Basic initialization
         self.targets_cur = targets
-        self.length_cur = self.length + 1
+        if self.length > 0:
+            self.length_cur = self.length + 1
+        else:
+            self.length_cur = self.length
         self.active = True
         # Apply effects
         if self.activation != 'passive':
@@ -276,8 +279,8 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                  Ability('Arcane Resilience', 'passive', (0, 4, 0, 15, 0, 0),
                          1, 'self', 0, 0),
                  # Runesmith Abilities
-                 Ability('Rune of Flame', 'instant', (0, 0, 0, 0, 10, 0),
-                         1, 'enemy(ies)', 0, 4),
+                 Ability('Rune of Flame', 'instant', (0, 0, 0, 0, 5, 0),
+                         2, 'enemy(ies)', 0, 3),
                  Ability('Rune of Earth', 'buff', (0, 3, 0, 6, 0, 0),
                          1, 'self', 3, 5),
                  Ability('Rune of Wind', 'buff', (6, 0, 0, 0, 0, 0),
@@ -285,11 +288,11 @@ all_abilities = (Ability('Hunker Down', 'buff', (0, +2, +1, 0, 0, 0),
                  Ability('Rune Explosion', 'instant', (0, 0, 0, 0, 12, 0),
                          7, 'enemy(ies)', 0, 6),
                  # Spellblade Abilities
-                 Ability('Arcane Blade', 'instant', (0, 0, 0, 0, 8, 0),
-                         1, 'enemy(ies)', 0, 3),
-                 Ability('Arcane Agility', 'buff', (2, 0, 4, 0, 0, 0),
-                         1, 'self', 2, 4),
-                 Ability('Swift Strikes', 'instant', (0, 0, 0, 0, 10, 0),
-                         2, 'enemy(ies)', 0, 4),
+                 Ability('Flaming Sweep', 'instant', (0, 0, 0, 0, 5, 0),
+                         3, 'enemy(ies)', 0, 3),
+                 Ability('Parry', 'reaction', (0, 10, 0, 0, 0, 0),
+                         1, 'self', 1, 4),
+                 Ability('Swift Strike', 'instant', (0, 0, 0, 0, 20, 0),
+                         1, 'enemy(ies)', 0, 4),
                  Ability('Spellblade Precision', 'passive', (8, 0, 0, 0, 0, 0),
                          1, 'self', 0, 0),)
