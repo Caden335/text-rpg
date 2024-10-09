@@ -338,11 +338,13 @@ def create_encounter(team1, team2):
             team1.inv.append(item)
             print('   ', item.one_line())
         team1.leader = team1.members[0]
+        winning_team = team1
         print()
     else:
         print('-----------------\nWinners - Team 2\n-----------------')
         team2.gold += team1.gold
         team2.leader = team2.members[0]
+        winning_team = team2
         for char in team2.members:
             for abil in char.abilities:
                 abil.length_cur = 0
@@ -350,6 +352,8 @@ def create_encounter(team1, team2):
                     abil.deactivate()
                 abil.cooldown_cur = 0
     print('Survivors')
+    for char in winning_team:
+        print(f'{char.name}: {char.cur_hp:.1f}/{char.max_hp}')
 
 
 def take_turn(team, enemy_team):

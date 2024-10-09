@@ -127,7 +127,7 @@ all_items = (Item('Ring of Health', 'accessory', 'common', (0, 0, 0, 2)),
              Item('Jade Ring', 'accessory', 'well-made', (0, 0, 0, 4)),
              Item('Sapphire Ring', 'accessory', 'well-made', (0, 4, 0, 0)),
              Item('Ring of Protection', 'accessory', 'expert', (0, 4, 2, 0)),
-             Item('Diamong Ring', 'accessory', 'expert', (6, 0, 0, 0)),
+             Item('Diamond Ring', 'accessory', 'expert', (6, 0, 0, 0)),
              Item('All-Ring', 'accessory', 'masterwork', (2, 2, 2, 2)),
              Item('Buckler', 'weapon', 'common', (0, 2, 0, 0)),  # Shields
              Item('Heater Shield', 'weapon', 'well-made', (0, 4, 0, 0)),

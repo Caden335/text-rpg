@@ -41,8 +41,8 @@ if __name__ == "__main__":
           '‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾')
     main_char = entities.PlayerCharacter()
     adv_party = map_items.PlayerParty(main_char)
-    actions.create_world()
     startersburg = map_items.Settlement('Startersburg', 1000)
+    actions.create_world()
     startersburg.x = 0
     startersburg.y = 0
     day = 1
