@@ -165,8 +165,7 @@ def new_move(player):
     your_choice = 'None'
     while not any(your_choice == i for i in range(len(map_items.map_items))):
         your_choice = int(input('Where do you want to go? (#) '))
-        if ((str(your_choice).lower() == 'back' or
-             str(your_choice).lower() == 'finished')):
+        if not string_not_back(str(your_choice)):
             return 'back'
         if not any(your_choice == i for i in range(len(map_items.map_items))):
             print('Invalid selection, try again')
@@ -197,7 +196,7 @@ def settlement_actions(player):
     select = 'None'
     while select.lower() not in actions:
         select = input('What would you like to do? ')
-        if select.lower() == 'back' or select.lower() == 'finished':
+        if not string_not_back(select):
             return
         elif select.lower() not in actions:
             print('Invalid option, try again')
@@ -220,7 +219,7 @@ def settlement_shop(player, settlement):
     print('-----------------')
     print('What do you want to buy?')
     select = ''
-    while select.lower() != 'finished' and select.lower() != 'back':
+    while string_not_back(select):
         select = input('Type item name or '
                        'type "finished" to end: ')
         if any(select == item.name for item in settlement.shop):
@@ -262,7 +261,7 @@ def pick_team(player, settlement):
     while len(player.members) < 5:
         index_val = input('Enter number for character '
                           'or type "finished" to end: ')
-        if index_val.lower() == 'finished' or index_val.lower() == 'back':
+        if not string_not_back(index_val):
             break
         if index_val.isdigit():
             index_val = int(index_val) - 1
@@ -480,69 +479,75 @@ def party_view(player):
     while not any(person.lower() == char.name.lower()
                   for char in player.members):
         person = input('Select character: ')
-        if person == 'finished' or person == 'back':
+        if not string_not_back(person):
             return
         if not any(person.lower() == char.name.lower()
                    for char in player.members):
             print('Invalid option, try again')
-    person = next(char for char in player.members
-                  if char.name.lower() == person.lower())
-    select = 'None'
-    # Keeps running while not finished
-    while select.lower() != 'finished' and select.lower() != 'back':
-        while select.lower() != 'equip' and select.lower() != 'unequip':
-            select = input('Equip or Unequip? ')
-            if select.lower() == 'finished' or select.lower() == 'back':
-                return
-        # Unequip objects
-        if select.lower() == 'unequip':
-            print(person.name)
-            for key, val in person.items.items():
-                if val is not None:
-                    print(f'     {key.capitalize()}: {val.one_line()}')
-            sel_item = ''
-            while (sel_item.lower() != 'back' and
-                   sel_item.lower() != 'finished'):
-                while not any(person.items[val] is not None and
-                              sel_item.lower() ==
-                              person.items[val].name.lower()
-                              for val in person.items):
-                    sel_item = input('Which item do you want to unequip? ')
-                    if ((sel_item.lower() == 'finished' or
-                         sel_item.lower() == 'back')):
+        else:
+            person = next(char for char in player.members
+                          if char.name.lower() == person.lower())
+            select = 'None'
+            while string_not_back(select):
+                while (select.lower() != 'equip' and
+                       select.lower() != 'unequip'):
+                    select = input('Equip or Unequip? ')
+                    if not string_not_back(select):
                         break
-                    elif not any(person.items[val] is not None and
-                                 sel_item.lower() ==
-                                 person.items[val].name.lower()
-                                 for val in person.items):
-                        print('Invalid item, try again')
-                    else:
-                        item = next(person.items[val] for val in person.items
-                                    if person.items[val] is not None and
-                                    person.items[val].name.lower() ==
-                                    sel_item.lower())
-                        item.unequip()
-                        player.inv.append(item)
-                        sel_item = ''
-                select = ''
-        # Equip objects
-        elif select.lower() == 'equip':
-            sel_item = ''
-            while (sel_item.lower() != 'back' and
-                   sel_item.lower() != 'finished'):
-                while not any(sel_item.lower() == item.name.lower()
-                              for item in player.inv):
-                    sel_item = input('Which item do you want to equip? ')
-                    if ((sel_item.lower() == 'finished' or
-                         sel_item.lower() == 'back')):
-                        break
-                    elif not any(sel_item.lower() == item.name.lower()
-                                 for item in player.inv):
-                        print('Invalid item, try again')
-                    else:
-                        item = next(item for item in player.inv
-                                    if item.name.lower() == sel_item.lower())
-                        item.equip(person)
-                        player.inv.remove(item)
-                        sel_item = ''
-            select = ''
+                # Unequip objects
+                if select.lower() == 'unequip':
+                    print(person.name)
+                    for key, val in person.items.items():
+                        if val is not None:
+                            print(f'     {key.capitalize()}: {val.one_line()}')
+                    sel_item = ''
+                    while string_not_back(sel_item):
+                        sel_item = input('Which item do you want to unequip? ')
+                        if not string_not_back(sel_item):
+                            break
+                        elif not any(person.items[val] is not None and
+                                     sel_item.lower() ==
+                                     person.items[val].name.lower()
+                                     for val in person.items):
+                            print('Invalid item, try again')
+                        else:
+                            item = next(person.items[val] for val
+                                        in person.items if person.items[val]
+                                        is not None and
+                                        person.items[val].name.lower() ==
+                                        sel_item.lower())
+                            item.unequip()
+                            player.inv.append(item)
+                            sel_item = ''
+                        select = ''
+                # Equip objects
+                elif select.lower() == 'equip':
+                    sel_item = ''
+                    while string_not_back(sel_item):
+                        sel_item = input('Which item do you want to equip? ')
+                        if not string_not_back(sel_item):
+                            break
+                        elif not any(sel_item.lower() == item.name.lower()
+                                     for item in player.inv):
+                            print('Invalid item, try again')
+                        else:
+                            item = next(item for item in player.inv
+                                        if item.name.lower() ==
+                                        sel_item.lower())
+                            item.equip(person)
+                            player.inv.remove(item)
+                            sel_item = ''
+                    select = ''
+        person = ''
+
+
+def string_not_back(string):
+    """Return true if string not back or finished.
+
+    Args:
+        string (str): string being tested
+
+    Returns:
+        bool: is it 'back' or 'finished'
+    """
+    return string.lower() != 'back' and string.lower() != 'finished'
