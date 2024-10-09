@@ -83,13 +83,18 @@ def select_options(player):
         your_choice = "None"
         while your_choice.lower() not in actions:
             your_choice = input('Select Action: ')
-            if your_choice == 'CHEAT':
+            if your_choice == 'FULL CHEAT':
                 print('CHEAT DONE')
                 for member in player.members:
                     for _i in range(5 - member.lvl):
                         member.level_up()
                 player.gold += 5000
                 player.inv += items.all_items
+            elif your_choice == 'MINOR CHEAT':
+                print('CHEAT DONE')
+                for member in player.members:
+                    member.level_up()
+                player.gold += 300
             if your_choice.lower() not in actions:
                 print('Invalid selection, try again')
         # What happens
@@ -214,7 +219,7 @@ def settlement_shop(player, settlement):
     items.print_item_list(settlement.shop)
     print('-----------------')
     print('What do you want to buy?')
-    select = None
+    select = ''
     while select.lower() != 'finished' and select.lower() != 'back':
         select = input('Type item name or '
                        'type "finished" to end: ')
@@ -321,7 +326,7 @@ def create_encounter(team1, team2):
         for item in team2.inv:
             team1.inv.append(item)
             print('   ', item.one_line())
-        for char in team1:
+        for char in team1.members:
             for abil in char.abilities:
                 abil.length_cur = 0
                 if abil.activation == 'buff' or abil.activation == 'reaction':
@@ -333,7 +338,7 @@ def create_encounter(team1, team2):
         print('-----------------\nWinners - Team 2\n-----------------')
         team2.gold += team1.gold
         team2.leader = team2.members[0]
-        for char in team2:
+        for char in team2.members:
             for abil in char.abilities:
                 abil.length_cur = 0
                 if abil.activation == 'buff' or abil.activation == 'reaction':
@@ -518,6 +523,7 @@ def party_view(player):
                                     sel_item.lower())
                         item.unequip()
                         player.inv.append(item)
+                        sel_item = ''
                 select = ''
         # Equip objects
         elif select.lower() == 'equip':
@@ -538,4 +544,5 @@ def party_view(player):
                                     if item.name.lower() == sel_item.lower())
                         item.equip(person)
                         player.inv.remove(item)
+                        sel_item = ''
             select = ''
