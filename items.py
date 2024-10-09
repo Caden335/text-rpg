@@ -95,7 +95,7 @@ class Item:
             person (RPGCharacter): new wearer
         """
         if person.items[self.type] is not None:
-            person.item[self.type].unequip()
+            person.items[self.type].unequip()
         person.items[self.type] = self
         self.equipt = person
         self.equipt.atk += self.effects[0]

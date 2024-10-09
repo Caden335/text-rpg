@@ -160,7 +160,8 @@ def new_move(player):
     your_choice = 'None'
     while not any(your_choice == i for i in range(len(map_items.map_items))):
         your_choice = int(input('Where do you want to go? (#) '))
-        if str(your_choice).lower() == 'back' or str(your_choice).lower() == 'finished':
+        if ((str(your_choice).lower() == 'back' or
+             str(your_choice).lower() == 'finished')):
             return 'back'
         if not any(your_choice == i for i in range(len(map_items.map_items))):
             print('Invalid selection, try again')
@@ -320,12 +321,24 @@ def create_encounter(team1, team2):
         for item in team2.inv:
             team1.inv.append(item)
             print('   ', item.one_line())
+        for char in team1:
+            for abil in char.abilities:
+                abil.length_cur = 0
+                if abil.activation == 'buff' or abil.activation == 'reaction':
+                    abil.deactivate()
+                abil.cooldown_cur = 0
         team1.leader = team1.members[0]
         print()
     else:
         print('-----------------\nWinners - Team 2\n-----------------')
         team2.gold += team1.gold
         team2.leader = team2.members[0]
+        for char in team2:
+            for abil in char.abilities:
+                abil.length_cur = 0
+                if abil.activation == 'buff' or abil.activation == 'reaction':
+                    abil.deactivate()
+                abil.cooldown_cur = 0
     print('Survivors')
 
 
@@ -371,9 +384,9 @@ def take_turn(team, enemy_team):
                     pick_use_ability(char, team, enemy_team)
                 # Use ability, but none are available
                 elif (act_type == 'ability' and
-                      len(char.ability) == 0 or
-                      not any(ability.is_usable()for
-                              ability in char.abilities)):
+                      (len(char.ability) == 0 or
+                       not any(ability.is_usable() for
+                               ability in char.abilities))):
                     print('You have no usable abilities right now')
                 else:
                     print('Invalid selection, try again')
@@ -481,33 +494,48 @@ def party_view(player):
             print(person.name)
             for key, val in person.items.items():
                 if val is not None:
-                    print(f'     {key.capitalize()}: {val.name}')
-            while not any(person.items[val] is not None and
-                          select.lower() == person.items[val].name.lower()
-                          for val in person.items):
-                select = input('Which item do you want to unequip? ')
-                if select.lower() == 'finished' or select.lower() == 'back':
-                    return
-                if not any(person.items[val] is not None and
-                           select.lower() == person.items[val].name.lower()
-                           for val in person.items):
-                    print('Invalid item, try again')
-            item = next(person.items[val] for val in person.items
-                        if person.items[val] is not None and
-                        person.items[val].name.lower() == select.lower())
-            item.unequip()
-            player.inv.append(item)
+                    print(f'     {key.capitalize()}: {val.one_line()}')
+            sel_item = ''
+            while (sel_item.lower() != 'back' and
+                   sel_item.lower() != 'finished'):
+                while not any(person.items[val] is not None and
+                              sel_item.lower() ==
+                              person.items[val].name.lower()
+                              for val in person.items):
+                    sel_item = input('Which item do you want to unequip? ')
+                    if ((sel_item.lower() == 'finished' or
+                         sel_item.lower() == 'back')):
+                        break
+                    elif not any(person.items[val] is not None and
+                                 sel_item.lower() ==
+                                 person.items[val].name.lower()
+                                 for val in person.items):
+                        print('Invalid item, try again')
+                    else:
+                        item = next(person.items[val] for val in person.items
+                                    if person.items[val] is not None and
+                                    person.items[val].name.lower() ==
+                                    sel_item.lower())
+                        item.unequip()
+                        player.inv.append(item)
+                select = ''
         # Equip objects
         elif select.lower() == 'equip':
-            while not any(select.lower() == item.name.lower()
-                          for item in player.inv):
-                select = input('Which item do you want to equip? ')
-                if select.lower() == 'finished' or select.lower() == 'back':
-                    return
-                if not any(select.lower() == item.name.lower()
-                           for item in player.inv):
-                    print('Invalid item, try again')
-            item = next(item for item in player.inv
-                        if item.name.lower() == select.lower())
-            item.equip(person)
-            player.inv.remove(item)
+            sel_item = ''
+            while (sel_item.lower() != 'back' and
+                   sel_item.lower() != 'finished'):
+                while not any(sel_item.lower() == item.name.lower()
+                              for item in player.inv):
+                    sel_item = input('Which item do you want to equip? ')
+                    if ((sel_item.lower() == 'finished' or
+                         sel_item.lower() == 'back')):
+                        break
+                    elif not any(sel_item.lower() == item.name.lower()
+                                 for item in player.inv):
+                        print('Invalid item, try again')
+                    else:
+                        item = next(item for item in player.inv
+                                    if item.name.lower() == sel_item.lower())
+                        item.equip(person)
+                        player.inv.remove(item)
+            select = ''

@@ -458,7 +458,7 @@ class PlayerCharacter(RPGCharacter):
 
     def __init__(self):
         """Create character."""
-        self.name = input('Choose Character Name: ')
+        self.name = input('Choose Character Name: ').capitalize()
         print('-----------------')
         self.__pick_class()
         print('-----------------')
@@ -486,11 +486,14 @@ class PlayerCharacter(RPGCharacter):
         print('-----------------')
         # Pick option
         select = "None"
-        while not any(select == cl.name for cl in rpg_classes):
+        while not any(select.lower() == cl.name.lower()
+                      for cl in rpg_classes):
             select = input()
-            if not any(select == cl.name for cl in rpg_classes):
+            if not any(select.lower() == cl.name.lower()
+                       for cl in rpg_classes):
                 print('Invalid selection, try again')
-        select = next(cl for cl in rpg_classes if cl.name == select)
+        select = next(cl for cl in rpg_classes
+                      if cl.name.lower() == select.lower())
         self.rpg_class = select
 
     def __pick_subclass(self, char_class):
@@ -507,15 +510,15 @@ class PlayerCharacter(RPGCharacter):
         print('-----------------')
         # Pick option
         select_name = "None"
-        while not any(select_name in sc.name
+        while not any(select_name.lower() in sc.name.lower()
                       for sc in self.rpg_class.subclasses):
             select_name = input()
-            if not any(select_name in sc.name
+            if not any(select_name.lower() in sc.name.lower()
                        for sc in self.rpg_class.subclasses):
                 print('Invalid selection, try again')
             else:
                 select = next(sc for sc in self.rpg_class.subclasses
-                              if select_name in sc.name)
+                              if select_name.lower() == sc.name.lower())
         self.subclass = select
         self.atk = select.stats[0]
         self.ac = select.stats[1]
@@ -536,12 +539,15 @@ class PlayerCharacter(RPGCharacter):
         print('-----------------')
         # Pick option
         select_name = "None"
-        while not any(select_name == rc.name for rc in races):
+        while not any(select_name.lower() == rc.name.lower()
+                      for rc in races):
             select_name = input()
-            if not any(select_name == rc.name for rc in races):
+            if not any(select_name.lower() == rc.name.lower()
+                       for rc in races):
                 print('Invalid selection, try again')
             else:
-                select = next(rc for rc in races if select_name == rc.name)
+                select = next(rc for rc in races
+                              if select_name.lower() == rc.name.lower())
         self.race = select
         self.atk += select.stats[0]
         self.ac += select.stats[1]
