@@ -352,7 +352,7 @@ def create_encounter(team1, team2):
                     abil.deactivate()
                 abil.cooldown_cur = 0
     print('Survivors')
-    for char in winning_team:
+    for char in winning_team.members:
         print(f'{char.name}: {char.cur_hp:.1f}/{char.max_hp}')
 
 
@@ -449,7 +449,7 @@ def pick_use_ability(char, team, enemy_team):
             if abil.target_type == 'self':
                 abil.activate(char, [char])
             else:
-                print(f'Who do you want {abil.name} to target? ')
+                print(f'Who do you want {abil.name} to target?')
                 your_targets = []
                 your_targets_i = []
                 if abil.target_type == 'enemy(ies)':
@@ -460,7 +460,7 @@ def pick_use_ability(char, team, enemy_team):
                     print(f'{i + 1}. {targ.name}')
                 targ_len = min(len(abil_targets), abil.target_count)
                 while len(your_targets) < targ_len:
-                    new_tar = int(input('Who do you want to target?') or 1) - 1
+                    new_tar = int(input('Who do you want to target? ') or 1) - 1
                     if ((new_tar in range(len(abil_targets)) and
                          new_tar not in your_targets_i)):
                         your_targets.append(abil_targets[new_tar])
