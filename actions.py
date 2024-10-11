@@ -12,7 +12,7 @@ import items
 
 def create_world():
     """Generate settlements, and enemies."""
-    for _i in range(random.randint(4, 8)):
+    for _i in range(random.randint(5, 10)):
         s_pref = [pref for pref in rpg_lists.rpg_names
                   if len(pref) <= 4]
         s_pref = s_pref + list(rpg_lists.settlement_pref)
@@ -20,7 +20,7 @@ def create_world():
         settlement_name = f'{s_pref[random.randint(0, len(s_pref) - 1)]}'
         settlement_name += f'{rpg_lists.settlement_suf[suf]}'
         map_items.Settlement(settlement_name, random.randint(1000, 10000))
-    for _i in range(random.randint(12, 15)):
+    for _i in range(random.randint(30, 50)):
         type = random.randint(0, len(rpg_lists.generic_enemy_types) - 1)
         map_items.MonsterBand(rpg_lists.generic_enemy_types[type],
                               1, random.randint(2, 5))
@@ -164,9 +164,10 @@ def new_move(player):
             map_items.print_map_item(loc)
     your_choice = 'None'
     while not any(your_choice == i for i in range(len(map_items.map_items))):
-        your_choice = int(input('Where do you want to go? (#) ') or 0)
+        your_choice = input('Where do you want to go? (#) ')
         if not string_not_back(str(your_choice)):
             return 'back'
+        your_choice = int(your_choice or 1)
         if not any(your_choice == i for i in range(len(map_items.map_items))):
             print('Invalid selection, try again')
         else:
