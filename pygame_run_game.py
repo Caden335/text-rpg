@@ -61,6 +61,10 @@ while running:
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("dark green")
+    for x in range(-10, 11):
+        for y in range(-10 + abs(x), 11 - abs(x)):
+            r = pygame.Rect((x + 56) * 20 - 10, (y + 35) * 20 - 10, 20, 20)
+            pygame.draw.rect(screen, 'white', r)
     pygame.draw.circle(screen, 'black', player_pos, 10)
     for item in map_items.map_items:
         if abs(item.x) <= 56 and abs(item.y) < 35:
@@ -68,7 +72,7 @@ while running:
                   pygame.draw.circle(screen, 'red', ((-(item.x) + 56) * 20, (-(item.y) + 35) * 20), 10)
             else:
                   r = pygame.Rect((-(item.x) + 56) * 20 - 10, (-(item.y) + 35) * 20 - 10, 20, 20)
-                  pygame.draw.rect(screen, 'white', r)
+                  pygame.draw.rect(screen, 'blue', r)
     # RENDER YOUR GAME HERE
 
     # flip() the display to put your work on screen

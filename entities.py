@@ -83,7 +83,7 @@ class RPGSubclass:
         text = self.name
         text += '\n     Stats:\n'
         for i in range(len(self.stats)):
-            text += f'          {items.bonus_order[i]}: {self.stats[i]} '
+            text += f'         {items.bonus_order[i]}: {self.stats[i]} '
             text += f'+ {self.stats_lvl[i]}/lvl\n'
         text += '     Abilities:\n'
         for i, ability in enumerate(self.abilities):
@@ -283,18 +283,61 @@ class Entity:
                         ability.activate(self, [enemy])
                     elif ability.target_type == 'self':
                         ability.activate(self, [self])
-            # Base damage is atk minus half enemy armor. Can't be below 0
-            damage = max(0, (self.atk - (enemy.ac / 2)))
-            # Damage range is 80% - 120% of base damage
-            damage *= ((random.randint(3, 7) / 10) + 0.5)
-            # Truncates to 1 decimal just in case math adds unecessary digits
-            damage = float(f'{damage:.1f}')
+            damage = self.calculate_damage(enemy, 1, 0.2, False)
             print(f'{self.name} hit their attack against '
                   f'{enemy.name} for {damage} points')
             enemy.take_damage(damage)
             self.add_xp(1)
         else:
             print(f'{self.name} missed their attack against {enemy.name}')
+
+    def special_attack(self, enemy, factor, hit, ignore):
+        """Special attack against enemy.
+
+        Args:
+            enemy (Entity): Target entity
+            factor (int): Damage factor
+            hit (bool): Is it a guaranteed hit?
+            ignore (bool): Does it ignore armor?
+        """
+        # Hit chance, not need if guarenteed hit
+        # Base chance 50% + 5% for each dif in atk and dge
+        hit_chance = (self.atk - enemy.dge) / 20 + .5
+        if hit or random.random() <= hit_chance:
+            # No damage variance for special attacks
+            damage = self.calculate_damage(enemy, factor, 0, ignore)
+            print(f'{self.name} hit their special attack against '
+                  f'{enemy.name} for {damage} points')
+            enemy.take_damage(damage)
+            self.add_xp(1)
+        else:
+            print(f'{self.name} missed their special '
+                  f'attack against {enemy.name}')
+
+    def calculate_damage(self, enemy, factor=1, variance=0.0, ignore=False):
+        """Calculate damage against enemy.
+
+        Args:
+            enemy (Entity): Target entity
+            factor (int): Damage factor
+            variance (float): Damage variance
+            ignore (bool): Does it ignore armor?
+
+        Returns:
+            damage (float): Damage amt
+        """
+        # Base damage is atk times factor minus half enemy armor. Can't be below 0
+        damage = self.atk * factor
+        if not ignore:
+            damage = max(0, (damage - (enemy.ac / 2)))
+        # Min damage is is 100 - (variance * 100)%
+        # Max damage is 100 + (variance * 100)% of base damage
+        min_dmg = 5 - (variance * 10)
+        max_dmg = 5 - (variance * 10)
+        damage *= ((random.randint(min_dmg, max_dmg) / 10) + 0.5)
+        # Truncates to 1 decimal just in case math adds unnecessary digits
+        damage = float(f'{damage:.1f}')
+        return damage
 
     def take_damage(self, dmg):
         """Take damage.
@@ -536,7 +579,7 @@ class PlayerCharacter(RPGCharacter):
             print(race.name)
             for i, stat in enumerate(race.stats):
                 if stat != 0:
-                    print(f'     {items.bonus_order[i]}: {stat}/lvl')
+                    print(f'    {items.bonus_order[i]}: {stat}/lvl')
         print('-----------------')
         # Pick option
         select_name = "None"
